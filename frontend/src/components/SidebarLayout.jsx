@@ -21,9 +21,16 @@ export default function SidebarLayout({ children }) {
     { name: 'Sources: YouTube', path: '/sources/youtube' },
   ]
 
+  const isDemo = import.meta.env.VITE_DEMO_MODE === 'true'
+
   return (
-    <div className="flex h-screen bg-gray-950 text-white overflow-hidden font-sans">
-      
+    <div className="flex h-screen bg-gray-950 text-white overflow-hidden font-sans flex-col">
+      {isDemo && (
+        <div className="w-full bg-yellow-600 text-yellow-50 text-xs font-bold text-center py-1 uppercase tracking-widest z-50 shadow-md">
+          Demo Data Mode Active
+        </div>
+      )}
+      <div className="flex flex-1 overflow-hidden">
       {/* Sidebar */}
       <aside className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col hidden md:flex">
         <div className="p-6 border-b border-gray-800">
@@ -97,6 +104,7 @@ export default function SidebarLayout({ children }) {
         </div>
       </main>
       
+      </div>
     </div>
   )
 }

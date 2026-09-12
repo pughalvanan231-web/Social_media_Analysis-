@@ -26,8 +26,8 @@ export default function SidebarLayout({ children }) {
   return (
     <div className="flex h-screen bg-gray-950 text-white overflow-hidden font-sans flex-col">
       {isDemo && (
-        <div className="w-full bg-yellow-600 text-yellow-50 text-xs font-bold text-center py-1 uppercase tracking-widest z-50 shadow-md">
-          Demo Data Mode Active
+        <div className="w-full bg-red-600 text-red-50 text-xs font-black text-center py-1.5 uppercase tracking-widest z-50 shadow-md">
+          SIH DEMO DATA - NOT REAL INTELLIGENCE
         </div>
       )}
       <div className="flex flex-1 overflow-hidden">

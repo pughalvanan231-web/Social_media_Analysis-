@@ -8,6 +8,7 @@ export default function SidebarLayout({ children }) {
     { name: 'Dashboard', path: '/' },
     { name: 'Emerging Issues', path: '/issues' },
     { name: 'Alerts', path: '/alerts' },
+    { name: 'Feedback Analytics', path: '/feedback' },
     { name: 'Trends', path: '/trends' },
     { name: 'Sentiment', path: '/sentiment' },
     { name: 'Topics', path: '/intelligence' },

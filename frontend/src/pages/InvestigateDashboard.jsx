@@ -13,7 +13,12 @@ export default function InvestigateDashboard() {
   // Filters
   const [platformFilter, setPlatformFilter] = useState('all')
   const [noteText, setNoteText] = useState('')
-  const [verifying, setVerifying] = useState(false)
+  
+  // Feedback states
+  const [feedbackAction, setFeedbackAction] = useState('CONFIRM')
+  const [feedbackReason, setFeedbackReason] = useState('')
+  const [feedbackSeverity, setFeedbackSeverity] = useState('HIGH')
+  const [submittingFeedback, setSubmittingFeedback] = useState(false)
 
   const fetchOverview = async () => {
     try {
@@ -52,15 +57,31 @@ export default function InvestigateDashboard() {
     init()
   }, [issueId, platformFilter])
 
-  const handleVerify = async () => {
-    setVerifying(true)
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault()
+    if (!feedbackReason.trim()) {
+      alert("Please provide a reason.")
+      return
+    }
+    setSubmittingFeedback(true)
     try {
-      await fetch(`http://127.0.0.1:8000/api/investigate/${issueId}/verify`, { method: 'POST' })
+      await fetch(`http://127.0.0.1:8000/api/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          issue_id: parseInt(issueId),
+          action: feedbackAction,
+          reason: feedbackReason,
+          new_severity: feedbackAction === 'CHANGE_SEVERITY' ? feedbackSeverity : null
+        })
+      })
+      setFeedbackReason('')
       await fetchHistory()
+      await fetchOverview() // Update scores and status
     } catch (e) {
       console.error(e)
     }
-    setVerifying(false)
+    setSubmittingFeedback(false)
   }
 
   const handleAddNote = async (e) => {
@@ -105,13 +126,14 @@ export default function InvestigateDashboard() {
           </div>
         </div>
         
-        <button 
-          onClick={handleVerify}
-          disabled={verifying}
-          className="mt-4 md:mt-0 px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded shadow-lg transition-colors"
-        >
-          {verifying ? 'Verifying...' : 'Mark as Verified'}
-        </button>
+        {issue.status && (
+          <div className="mt-4 md:mt-0 px-4 py-2 bg-gray-900 border border-gray-600 rounded">
+            <span className="text-gray-400 text-sm font-bold uppercase">Status:</span>
+            <span className={`ml-2 font-bold ${issue.status === 'VERIFIED' ? 'text-green-400' : issue.status === 'REJECTED' ? 'text-red-400' : 'text-blue-400'}`}>
+              {issue.status}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -165,7 +187,59 @@ export default function InvestigateDashboard() {
         {/* Right Column: Analyst Workspace */}
         <div className="space-y-6">
           <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <h3 className="text-xl font-bold text-white mb-4">Analyst Notes</h3>
+            <h3 className="text-xl font-bold text-white mb-4">Analyst Feedback</h3>
+            <form onSubmit={handleFeedbackSubmit} className="mb-6 bg-gray-900 p-4 rounded border border-gray-700">
+              <div className="mb-3">
+                <label className="block text-xs font-bold text-gray-400 mb-1">Action</label>
+                <select 
+                  value={feedbackAction}
+                  onChange={e => setFeedbackAction(e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white text-sm focus:outline-none"
+                >
+                  <option value="CONFIRM">Confirm / Verify</option>
+                  <option value="REJECT">Reject</option>
+                  <option value="FALSE_POSITIVE">Mark False Positive</option>
+                  <option value="CHANGE_SEVERITY">Change Severity</option>
+                </select>
+              </div>
+              
+              {feedbackAction === 'CHANGE_SEVERITY' && (
+                <div className="mb-3">
+                  <label className="block text-xs font-bold text-gray-400 mb-1">New Severity</label>
+                  <select 
+                    value={feedbackSeverity}
+                    onChange={e => setFeedbackSeverity(e.target.value)}
+                    className="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white text-sm focus:outline-none"
+                  >
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                    <option value="CRITICAL">CRITICAL</option>
+                  </select>
+                </div>
+              )}
+
+              <div className="mb-3">
+                <label className="block text-xs font-bold text-gray-400 mb-1">Reason / Notes</label>
+                <textarea 
+                  value={feedbackReason}
+                  onChange={e => setFeedbackReason(e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white text-sm focus:outline-none"
+                  rows="3"
+                  placeholder="Explain your action..."
+                ></textarea>
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={submittingFeedback}
+                className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded transition-colors text-sm"
+              >
+                {submittingFeedback ? 'Submitting...' : 'Submit Feedback'}
+              </button>
+            </form>
+
+            <h3 className="text-xl font-bold text-white mb-4 mt-6">Analyst Notes</h3>
             
             <form onSubmit={handleAddNote} className="mb-6">
               <textarea 

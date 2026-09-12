@@ -12,6 +12,7 @@ import IssuesDashboard from './pages/IssuesDashboard'
 import NetworkDashboard from './pages/NetworkDashboard'
 import AlertsDashboard from './pages/AlertsDashboard'
 import InvestigateDashboard from './pages/InvestigateDashboard'
+import FeedbackAnalytics from './pages/FeedbackAnalytics'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/issues" element={<IssuesDashboard />} />
         <Route path="/alerts" element={<AlertsDashboard />} />
         <Route path="/investigate/:issueId" element={<InvestigateDashboard />} />
+        <Route path="/feedback" element={<FeedbackAnalytics />} />
         <Route path="/network" element={<NetworkDashboard />} />
         <Route path="/sources/bluesky" element={<BlueskySearch />} />
         <Route path="/sources/youtube" element={<YoutubeSearch />} />

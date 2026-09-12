@@ -127,3 +127,17 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
         "views": p.engagement.views if p.engagement else None,
         "hashtags": [h.tag for h in p.hashtags]
     }
+
+from app.models.social import PostAnalysis
+
+@router.get("/{post_id}/analysis")
+def get_post_analysis(post_id: int, db: Session = Depends(get_db)):
+    analysis = db.query(PostAnalysis).filter(PostAnalysis.post_id == post_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+        
+    return {
+        "sentiment": analysis.sentiment,
+        "sentiment_score": analysis.sentiment_score,
+        "confidence": analysis.confidence
+    }

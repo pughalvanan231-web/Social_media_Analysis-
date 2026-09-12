@@ -181,6 +181,17 @@ class AnalystNote(Base):
     
     issue = relationship("EmergingIssue", backref="notes")
 
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=True)
+    hashed_password = Column(String)
+    role = Column(String, default="ANALYST") # ADMIN, ANALYST, DECISION_MAKER
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), default=func.now())
+
 class AuditLog(Base):
     __tablename__ = "audit_logs"
     
@@ -188,7 +199,8 @@ class AuditLog(Base):
     action = Column(String) # e.g. MARKED_VERIFIED, ADDED_NOTE
     target_type = Column(String) # e.g. Issue
     target_id = Column(Integer, index=True)
-    actor = Column(String, default="Analyst")
+    actor = Column(String, default="System")
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     timestamp = Column(DateTime(timezone=True), default=func.now())
 
 class AnalystFeedback(Base):

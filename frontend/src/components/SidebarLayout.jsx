@@ -1,8 +1,10 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 export default function SidebarLayout({ children }) {
   const location = useLocation()
+  const { logout, user } = useAuth()
   
   const navItems = [
     { name: 'Dashboard', path: '/' },
@@ -55,8 +57,16 @@ export default function SidebarLayout({ children }) {
           </ul>
         </nav>
         
-        <div className="p-4 border-t border-gray-800 text-xs text-gray-600 font-mono text-center">
-          v2.0.1 SYSTEM SECURE
+        <div className="p-4 border-t border-gray-800 text-xs text-gray-600 font-mono text-center flex flex-col items-center gap-2">
+          {user && (
+            <div className="text-gray-400">
+              Logged in as <span className="text-blue-400 font-bold">{user.username}</span>
+            </div>
+          )}
+          <button onClick={logout} className="text-red-400 hover:text-red-300 transition-colors uppercase font-bold tracking-wider">
+            Logout
+          </button>
+          <div className="mt-2">v2.0.1 SYSTEM SECURE</div>
         </div>
       </aside>
 

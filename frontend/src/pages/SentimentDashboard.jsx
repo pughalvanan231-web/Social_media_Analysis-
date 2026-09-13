@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 
 export default function SentimentDashboard() {
@@ -6,6 +7,7 @@ export default function SentimentDashboard() {
   const [message, setMessage] = useState('')
   const [stats, setStats] = useState({ positive: 0, neutral: 0, negative: 0 })
   const [posts, setPosts] = useState([])
+  const navigate = useNavigate()
 
   const fetchPostsAndStats = async () => {
     try {
@@ -137,7 +139,11 @@ export default function SentimentDashboard() {
               <div className="text-gray-500 text-center mt-10">No analyzed posts to display.</div>
             ) : (
               posts.map(post => (
-                <div key={post.id} className="bg-gray-900/50 p-4 rounded border border-gray-700/50">
+                <div 
+                  key={post.id} 
+                  className="bg-gray-900/50 p-4 rounded border border-gray-700/50 cursor-pointer hover:bg-gray-800 transition-colors"
+                  onClick={() => navigate(`/sentiment/feed/${post.id}`)}
+                >
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-xs font-semibold text-gray-400 capitalize">{post.platform} • @{post.author_username}</span>
                     <span className={`text-xs px-2 py-1 rounded font-bold

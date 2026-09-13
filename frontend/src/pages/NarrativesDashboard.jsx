@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-export default function IntelligenceDashboard() {
+export default function NarrativesDashboard() {
   const [running, setRunning] = useState(false)
   const [message, setMessage] = useState('')
   const [narratives, setNarratives] = useState({ rapid: [], emerging: [], major: [] })
@@ -49,12 +49,12 @@ export default function IntelligenceDashboard() {
   }
 
   const TopicCard = ({ topic, type }) => {
-    const bgColor = type === 'rapid' ? 'bg-orange-900/40 border-orange-500/50' : 
-                    type === 'emerging' ? 'bg-teal-900/40 border-teal-500/50' : 
+    const bgColor = type === 'rapid' ? 'bg-fuchsia-900/40 border-fuchsia-500/50' : 
+                    type === 'emerging' ? 'bg-indigo-900/40 border-indigo-500/50' : 
                     'bg-slate-800 border-slate-600'
                     
-    const titleColor = type === 'rapid' ? 'text-orange-400' : 
-                       type === 'emerging' ? 'text-teal-400' : 
+    const titleColor = type === 'rapid' ? 'text-fuchsia-400' : 
+                       type === 'emerging' ? 'text-indigo-400' : 
                        'text-slate-300'
 
     return (
@@ -90,56 +90,56 @@ export default function IntelligenceDashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="bg-gradient-to-r from-amber-900/60 to-orange-900/60 p-6 rounded-lg border border-amber-500/50 flex flex-col md:flex-row justify-between items-start md:items-center">
+      <div className="bg-gradient-to-r from-purple-900/60 to-fuchsia-900/60 p-6 rounded-lg border border-purple-500/50 flex flex-col md:flex-row justify-between items-start md:items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white">Topic Intelligence</h2>
-          <p className="text-amber-200 mt-1">Unsupervised BERTopic clustering and theme detection.</p>
+          <h2 className="text-2xl font-bold text-white">Narrative Velocity Engine</h2>
+          <p className="text-purple-200 mt-1">Advanced tracking of narrative evolution and propagation speed.</p>
         </div>
         <button 
           onClick={handleRunIntelligence}
           disabled={running}
-          className={`mt-4 md:mt-0 px-6 py-2 rounded-lg font-semibold text-white transition-colors shadow-lg ${running ? 'bg-amber-700/50 cursor-not-allowed' : 'bg-amber-600 hover:bg-amber-500 shadow-amber-500/20'}`}
+          className={`mt-4 md:mt-0 px-6 py-2 rounded-lg font-semibold text-white transition-colors shadow-lg ${running ? 'bg-purple-700/50 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-500 shadow-purple-500/20'}`}
         >
-          {running ? 'Clustering...' : 'Run Topic Discovery'}
+          {running ? 'Processing...' : 'Analyze Narratives'}
         </button>
       </div>
 
       {message && (
-        <div className="bg-amber-900/40 border border-amber-500/50 p-4 rounded-lg text-amber-200">
+        <div className="bg-purple-900/40 border border-purple-500/50 p-4 rounded-lg text-purple-200">
           {message}
         </div>
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Loading intelligence data...</div>
+        <div className="text-center py-12 text-gray-500">Loading narrative data...</div>
       ) : (
         <div className="space-y-10">
-
-          {/* Emerging Topics Section */}
+          {/* Rapid Narratives Section */}
           <section>
             <div className="flex items-center space-x-3 mb-6 border-b border-gray-700 pb-2">
-              <h3 className="text-2xl font-bold text-white">Emerging Topics</h3>
-              <span className="bg-teal-600 text-white text-xs font-bold px-2 py-1 rounded-full">NEW</span>
+              <h3 className="text-2xl font-bold text-white">High-Velocity Narratives</h3>
+              <span className="bg-fuchsia-600 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">CRITICAL</span>
             </div>
-            {narratives.emerging.length === 0 ? (
-              <p className="text-gray-500">No emerging topics detected currently.</p>
+            {narratives.rapid.length === 0 ? (
+              <p className="text-gray-500">No high-velocity narratives detected currently.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {narratives.emerging.map(topic => <TopicCard key={topic.id} topic={topic} type="emerging" />)}
+                {narratives.rapid.map(topic => <TopicCard key={topic.id} topic={topic} type="rapid" />)}
               </div>
             )}
           </section>
 
-          {/* Major Topics Section */}
+          {/* Forming Narratives Section */}
           <section>
             <div className="flex items-center space-x-3 mb-6 border-b border-gray-700 pb-2">
-              <h3 className="text-2xl font-bold text-white">Existing Major Topics</h3>
+              <h3 className="text-2xl font-bold text-white">Forming Narratives</h3>
+              <span className="bg-indigo-600 text-white text-xs font-bold px-2 py-1 rounded-full">WATCH</span>
             </div>
-            {narratives.major.length === 0 ? (
-              <p className="text-gray-500">No major topics detected currently.</p>
+            {narratives.emerging.length === 0 ? (
+              <p className="text-gray-500">No forming narratives detected currently.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {narratives.major.map(topic => <TopicCard key={topic.id} topic={topic} type="major" />)}
+                {narratives.emerging.map(topic => <TopicCard key={topic.id} topic={topic} type="emerging" />)}
               </div>
             )}
           </section>

@@ -6,6 +6,8 @@ import MainDashboard from './pages/MainDashboard'
 import PipelineDashboard from './pages/PipelineDashboard'
 import SentimentDashboard from './pages/SentimentDashboard'
 import IntelligenceDashboard from './pages/IntelligenceDashboard'
+import NarrativesDashboard from './pages/NarrativesDashboard'
+import FeedIntelligence from './pages/FeedIntelligence'
 import TrendsDashboard from './pages/TrendsDashboard'
 import IssuesDashboard from './pages/IssuesDashboard'
 import NetworkDashboard from './pages/NetworkDashboard'
@@ -51,7 +53,9 @@ function App() {
         <Route path="/" element={<ProtectedRoute><MainDashboard /></ProtectedRoute>} />
         <Route path="/pipeline" element={<ProtectedRoute><PipelineDashboard /></ProtectedRoute>} />
         <Route path="/sentiment" element={<ProtectedRoute><SentimentDashboard /></ProtectedRoute>} />
+        <Route path="/sentiment/feed/:feedId" element={<ProtectedRoute><FeedIntelligence /></ProtectedRoute>} />
         <Route path="/intelligence" element={<ProtectedRoute><IntelligenceDashboard /></ProtectedRoute>} />
+        <Route path="/narratives" element={<ProtectedRoute><NarrativesDashboard /></ProtectedRoute>} />
         <Route path="/trends" element={<ProtectedRoute><TrendsDashboard /></ProtectedRoute>} />
         <Route path="/issues" element={<ProtectedRoute><IssuesDashboard /></ProtectedRoute>} />
         <Route path="/alerts" element={<ProtectedRoute><AlertsDashboard /></ProtectedRoute>} />

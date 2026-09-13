@@ -17,7 +17,7 @@ export default function TrendsDashboard() {
         // Format dates for display
         const formattedData = data.map(d => ({
           ...d,
-          formattedTime: new Date(d.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+          formattedTime: new Date(d.timestamp).toLocaleString([], {month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'})
         }))
         
         setTrendData(formattedData)

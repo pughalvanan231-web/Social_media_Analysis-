@@ -22,7 +22,18 @@ def build_social_network(db: Session, topic_id: int = None, limit: int = 1000):
     query = db.query(SocialPost).join(Author)
     
     if topic_id:
-        query = query.join(post_topic).filter(post_topic.c.topic_id == topic_id)
+        # Check if there are any actual relationships in the DB (for demo data handling)
+        has_links = db.query(post_topic).filter(post_topic.c.topic_id == topic_id).first() is not None
+        if has_links:
+            query = query.join(post_topic).filter(post_topic.c.topic_id == topic_id)
+        else:
+            # Fallback: search by keywords if the relationship table is empty
+            from sqlalchemy import or_
+            topic = db.query(Topic).filter(Topic.id == topic_id).first()
+            if topic and topic.keywords:
+                conditions = [SocialPost.text.ilike(f"%{kw}%") for kw in topic.keywords[:5]]
+                if conditions:
+                    query = query.filter(or_(*conditions))
         
     posts = query.limit(limit).all()
     

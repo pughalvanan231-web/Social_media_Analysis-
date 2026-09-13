@@ -14,7 +14,7 @@ export default function SidebarLayout({ children }) {
     { name: 'Trends', path: '/trends' },
     { name: 'Sentiment', path: '/sentiment' },
     { name: 'Topics', path: '/intelligence' },
-    { name: 'Narratives', path: '/intelligence' }, // Reuse intelligence for now
+    { name: 'Narratives', path: '/narratives' }, // Reuse intelligence component in App.jsx
     { name: 'Network', path: '/network' },
     { name: 'Data Pipeline', path: '/pipeline' },
     { name: 'Sources: Bluesky', path: '/sources/bluesky' },

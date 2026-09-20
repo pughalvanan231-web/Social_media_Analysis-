@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from app.models.social import SocialPost, Location, EmergingIssue, post_topic
+from app.models.social import SocialPost, Location, EmergingIssue, post_topic, IssueEvidence
 from datetime import datetime
 
 def analyze_issue_geography(issue_id: int, db: Session):
@@ -23,20 +23,38 @@ def analyze_issue_geography(issue_id: int, db: Session):
         .filter(IssueEvidence.issue_id == issue_id)
         .first()
     )
+    records = []
+    if topic_row:
+        topic_id = topic_row[0]
+        
+        # Query posts associated with this topic that have valid location data
+        # We join SocialPost -> Location, and filter by topic
+        query = (
+            db.query(SocialPost, Location)
+            .join(Location, SocialPost.location_id == Location.id)
+            .join(post_topic, SocialPost.id == post_topic.c.post_id)
+            .filter(post_topic.c.topic_id == topic_id)
+            .filter(Location.latitude.isnot(None))
+            .filter(Location.longitude.isnot(None))
+        )
+        
+        records = query.all()
     
-    # If no real data, we can return realistic mock data for demo purposes
-    if not topic_row:
+    # If no real geographic data, we can return realistic mock data for demo purposes
+    if not records:
         # Generate some stable synthetic data based on the issue_id for demo mode
         import random
         random.seed(issue_id)
         
-        # We define a few major cities to simulate geographic spread
+        # We define a few major cities in India to simulate geographic spread
         cities = [
-            {"name": "New York", "lat": 40.7128, "lng": -74.0060},
-            {"name": "London", "lat": 51.5074, "lng": -0.1278},
             {"name": "Mumbai", "lat": 19.0760, "lng": 72.8777},
-            {"name": "Tokyo", "lat": 35.6762, "lng": 139.6503},
-            {"name": "Sydney", "lat": -33.8688, "lng": 151.2093}
+            {"name": "Delhi", "lat": 28.7041, "lng": 77.1025},
+            {"name": "Bengaluru", "lat": 12.9716, "lng": 77.5946},
+            {"name": "Chennai", "lat": 13.0827, "lng": 80.2707},
+            {"name": "Kolkata", "lat": 22.5726, "lng": 88.3639},
+            {"name": "Hyderabad", "lat": 17.3850, "lng": 78.4867},
+            {"name": "Pune", "lat": 18.5204, "lng": 73.8567}
         ]
         
         num_regions = random.randint(2, 4)
@@ -57,24 +75,6 @@ def analyze_issue_geography(issue_id: int, db: Session):
             "topic_name": issue.title,
             "regions": regions_list
         }
-        
-    topic_id = topic_row[0]
-    
-    # Query posts associated with this topic that have valid location data
-    # We join SocialPost -> Location, and filter by topic
-    query = (
-        db.query(SocialPost, Location)
-        .join(Location, SocialPost.location_id == Location.id)
-        .join(post_topic, SocialPost.id == post_topic.c.post_id)
-        .filter(post_topic.c.topic_id == topic_id)
-        .filter(Location.latitude.isnot(None))
-        .filter(Location.longitude.isnot(None))
-    )
-    
-    records = query.all()
-    
-    if not records:
-        return {"available": False, "message": "Geographic data unavailable for this source."}
         
     # Process results safely
     region_stats = {}

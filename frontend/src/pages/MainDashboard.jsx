@@ -150,13 +150,13 @@ export default function MainDashboard() {
                       </div>
                     </div>
                     
-                    <div className="flex gap-2">
+                      <div className="flex gap-2">
                       <Link to={`/investigate/${issue.id}`} className="flex-1 text-center py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 text-xs font-bold rounded border border-blue-500/20 transition-colors">
                         Investigate Topic
                       </Link>
-                      <button className="flex-1 text-center py-1.5 bg-gray-700/20 hover:bg-gray-700/50 text-gray-300 text-xs font-bold rounded border border-gray-600/30 transition-colors">
+                      <Link to={`/investigate/${issue.id}`} className="flex-1 text-center py-1.5 bg-gray-700/20 hover:bg-gray-700/50 text-gray-300 text-xs font-bold rounded border border-gray-600/30 transition-colors block">
                         View Evidence
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 ))

@@ -32,39 +32,39 @@ def seed_scenario(db: Session, scenario_id: int):
     # Base configuration per scenario
     if scenario_id == 1:
         topic_name = "Urban Water Supply"
-        keywords = ["water", "supply", "disruption", "shortage", "dry"]
+        keywords = ["water", "supply", "disruption", "shortage", "dry", "bmc", "bwssb"]
         posts_data = [
-            ("x", "No water supply since morning. What is the city council doing? #watercrisis", "negative", 500, now - datetime.timedelta(minutes=10)),
-            ("reddit", "Water problem in our area. Anyone else facing this?", "neutral", 250, now - datetime.timedelta(minutes=20)),
-            ("youtube", "Residents complain about water shortage - Local News", "negative", 1200, now - datetime.timedelta(minutes=50)),
-            ("bluesky", "Still no water. This is ridiculous.", "negative", 150, now - datetime.timedelta(minutes=5)),
-            ("x", "Water trucks seen in downtown.", "neutral", 300, now - datetime.timedelta(minutes=2)),
+            ("x", "No water supply since morning in Andheri. What is the BMC doing? #mumbaiwatercrisis", "negative", 500, now - datetime.timedelta(minutes=10)),
+            ("reddit", "Water problem in Whitefield. Anyone else in Bengaluru facing this?", "neutral", 250, now - datetime.timedelta(minutes=20)),
+            ("youtube", "Chennai residents protest over sudden water shortage - Local News", "negative", 1200, now - datetime.timedelta(minutes=50)),
+            ("bluesky", "Still no water in South Delhi. This is ridiculous.", "negative", 150, now - datetime.timedelta(minutes=5)),
+            ("x", "Water tankers seen near Marine Drive.", "neutral", 300, now - datetime.timedelta(minutes=2)),
         ]
         history_volumes = [100, 110, 105, 120, 500] # Anomaly at end
         history_sentiments = [0.5, 0.51, 0.49, 0.4, 0.2] # Shift negative
         
     elif scenario_id == 2:
         topic_name = "Transport Service Disruption"
-        keywords = ["train", "strike", "transit", "delay", "station"]
+        keywords = ["train", "local", "metro", "delay", "station"]
         posts_data = [
-            ("x", "All trains cancelled at central. Complete chaos! #transitstrike", "negative", 800, now - datetime.timedelta(minutes=15)),
-            ("reddit", "Is there a sudden strike? I've been waiting for an hour.", "neutral", 400, now - datetime.timedelta(minutes=25)),
-            ("x", "No buses either. The entire network is down.", "negative", 600, now - datetime.timedelta(minutes=10)),
-            ("bluesky", "Stuck at the station, avoid downtown if possible.", "negative", 200, now - datetime.timedelta(minutes=5)),
-            ("youtube", "Live: Commuters stranded as sudden strike hits transit network", "neutral", 2500, now - datetime.timedelta(minutes=30)),
+            ("x", "All local trains cancelled at Dadar station. Complete chaos! #mumbailocal", "negative", 800, now - datetime.timedelta(minutes=15)),
+            ("reddit", "Is there a sudden strike in Namma Metro? I've been waiting at Majestic for an hour.", "neutral", 400, now - datetime.timedelta(minutes=25)),
+            ("x", "No DTC buses either. The entire Delhi network is down.", "negative", 600, now - datetime.timedelta(minutes=10)),
+            ("bluesky", "Stuck at Chennai Central, avoid the station if possible.", "negative", 200, now - datetime.timedelta(minutes=5)),
+            ("youtube", "Live: Commuters stranded as sudden flash strike hits local transport", "neutral", 2500, now - datetime.timedelta(minutes=30)),
         ]
         history_volumes = [200, 190, 210, 250, 1200]
         history_sentiments = [0.6, 0.58, 0.55, 0.3, 0.15]
         
     else:
         topic_name = "Emerging Public Health Issue"
-        keywords = ["fever", "virus", "symptoms", "sick", "hospital"]
+        keywords = ["fever", "dengue", "symptoms", "hospital", "sick"]
         posts_data = [
-            ("reddit", "Half my office called in sick today with the same weird fever.", "negative", 600, now - datetime.timedelta(minutes=45)),
-            ("x", "Local hospital ER is completely packed tonight. What's going around?", "negative", 900, now - datetime.timedelta(minutes=30)),
-            ("bluesky", "Anyone else have this sudden fever and cough? It hit me in hours.", "negative", 300, now - datetime.timedelta(minutes=15)),
-            ("x", "Schools reporting 30% absence rate today due to mysterious illness.", "negative", 1500, now - datetime.timedelta(minutes=5)),
-            ("youtube", "Doctors warn of rapid spread of new flu-like virus in the city", "neutral", 3000, now - datetime.timedelta(minutes=60)),
+            ("reddit", "Half my office in Gurgaon called in sick today with the same weird fever.", "negative", 600, now - datetime.timedelta(minutes=45)),
+            ("x", "Apollo hospital ER is completely packed tonight. What's going around in Hyderabad?", "negative", 900, now - datetime.timedelta(minutes=30)),
+            ("bluesky", "Anyone else in Pune have this sudden fever and cough? It hit me in hours.", "negative", 300, now - datetime.timedelta(minutes=15)),
+            ("x", "Schools in Kerala reporting 30% absence rate today due to mysterious viral illness.", "negative", 1500, now - datetime.timedelta(minutes=5)),
+            ("youtube", "Doctors warn of rapid spread of new dengue-like fever across multiple states", "neutral", 3000, now - datetime.timedelta(minutes=60)),
         ]
         history_volumes = [50, 60, 55, 80, 800]
         history_sentiments = [0.5, 0.45, 0.48, 0.35, 0.25]

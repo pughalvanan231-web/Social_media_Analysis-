@@ -35,7 +35,7 @@ class PDFReport(FPDF):
         self.set_font('Arial', 'B', 10)
         self.cell(45, 6, key, 0, 0)
         self.set_font('Arial', '', 10)
-        self.multi_cell(0, 6, str(value))
+        self.multi_cell(145, 6, str(value))
         
     def add_disclaimer(self, text, is_system=True):
         self.set_font('Arial', 'I', 8)

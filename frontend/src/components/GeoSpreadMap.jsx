@@ -46,10 +46,10 @@ export default function GeoSpreadMap({ issueId }) {
         <span className="text-[10px] uppercase font-bold text-gray-500">Supporting Visualization</span>
       </div>
       <div className="flex-1 rounded overflow-hidden border border-gray-700 relative z-0">
-        <MapContainer center={[20, 0]} zoom={2} style={{ height: '100%', width: '100%', background: '#1f2937' }}>
+        <MapContainer center={[22.5937, 78.9629]} zoom={4} style={{ height: '100%', width: '100%', background: '#1f2937' }}>
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            attribution='&copy; OpenStreetMap &copy; CARTO'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+            attribution='Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ'
           />
           {geoData.regions.map((region, i) => (
             <CircleMarker

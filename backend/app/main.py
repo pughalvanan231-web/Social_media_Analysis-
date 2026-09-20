@@ -34,7 +34,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.api import posts, connectors, pipeline, ai, intelligence, trends, issues, network, geo, alerts, investigate, dashboard, reports, feedback, sentiment
+from app.api import posts, connectors, pipeline, ai, intelligence, trends, issues, network, geo, alerts, investigate, dashboard, reports, feedback, sentiment, demo
 
 from fastapi import Depends
 from app.api.deps import get_current_user, RequireRole
@@ -60,6 +60,7 @@ app.include_router(geo.router, dependencies=protected)
 app.include_router(sentiment.router, dependencies=protected)
 app.include_router(alerts.router, dependencies=protected)
 app.include_router(investigate.router, dependencies=protected)
+app.include_router(demo.router, dependencies=protected)
 app.include_router(dashboard.router, dependencies=protected)
 app.include_router(reports.router, dependencies=[Depends(RequireRole(["ADMIN", "DECISION_MAKER"]))])
 app.include_router(feedback.router, dependencies=[Depends(RequireRole(["ADMIN", "ANALYST"]))])

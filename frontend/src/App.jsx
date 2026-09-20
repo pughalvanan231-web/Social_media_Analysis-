@@ -17,6 +17,7 @@ import FeedbackAnalytics from './pages/FeedbackAnalytics'
 import BlueskySearch from './pages/BlueskySearch'
 import YoutubeSearch from './pages/YoutubeSearch'
 import LoginPage from './pages/LoginPage'
+import DemoController from './components/DemoController'
 
 // Global fetch interceptor to inject JWT
 const originalFetch = window.fetch
@@ -46,6 +47,7 @@ function ProtectedRoute({ children }) {
 function App() {
   return (
     <AuthProvider>
+      <DemoController onComplete={() => window.location.reload()} />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         

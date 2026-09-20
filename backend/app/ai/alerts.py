@@ -1,51 +1,56 @@
-import os
 from sqlalchemy.orm import Session
-from app.models.social import EmergingIssue, Alert
+from app.models.social import EmergingIssue, Alert, IntelligenceSignal, IssueEvidence, SocialPost
+import os
 
 def generate_alerts(db: Session):
     """
-    Scans for emerging issues that cross the alert thresholds
-    and creates new Alerts if one doesn't exist yet for the issue.
+    Scans for emerging issues and creates detailed explainable Alerts based on actual signals.
     """
-    high_threshold = float(os.getenv("ALERT_THRESHOLD_HIGH", "80"))
-    critical_threshold = float(os.getenv("ALERT_THRESHOLD_CRITICAL", "90"))
-    
-    # We only want issues that exceed the HIGH threshold minimum
-    issues = db.query(EmergingIssue).filter(EmergingIssue.signal_score >= high_threshold).all()
+    # Fetch issues that are HIGH SIGNAL or EMERGING and don't have an alert yet
+    # For Phase 4, let's say we alert on anything >= 40 confidence (EMERGING or higher)
+    issues = (
+        db.query(EmergingIssue)
+        .filter(EmergingIssue.confidence >= 40)
+        .all()
+    )
     
     new_alerts = 0
     for issue in issues:
-        # Check if an alert already exists for this exact issue record
         existing_alert = db.query(Alert).filter(Alert.issue_id == issue.id).first()
         if existing_alert:
-            # We already alerted on this issue. (If scores were dynamic, we might update, but issues are snapshots here)
             continue
             
-        severity = "HIGH"
-        if issue.signal_score >= critical_threshold:
-            severity = "CRITICAL"
+        severity = "HIGH" if issue.confidence >= 70 else "MEDIUM"
+        
+        # Gather signals
+        signals = db.query(IntelligenceSignal).filter(IntelligenceSignal.issue_id == issue.id).all()
+        
+        # Build explanation text
+        # Format:
+        # EMERGING ISSUE DETECTED
+        # [Title]
+        # Evidence:
+        # ✓ [Explanation]
+        
+        title_text = issue.title if issue.title else "Unknown Issue"
+        explanation = f"EMERGING ISSUE DETECTED\n\n{title_text}\n\nEvidence:\n"
+        
+        for sig in signals:
+            explanation += f"✓ {sig.explanation}\n"
             
-        reason = f"Signal score reached {issue.signal_score}. Key factors: {', '.join(issue.contributing_factors[:2]) if issue.contributing_factors else 'N/A'}"
-        
-        # We can pull supporting metrics directly from the explanation layer or just store basic context
-        from app.ai.explainability import generate_issue_explanation
-        explanation = generate_issue_explanation(issue.id, db)
-        
-        supporting_metrics = {
-            "volume_change": explanation.get("volume_change", "N/A"),
-            "engagement_change": explanation.get("engagement_change", "N/A"),
-            "sentiment_change": explanation.get("sentiment_change", "N/A"),
-            "geographic_spread": explanation.get("geographic_spread", "N/A"),
-            "topic_name": issue.topic.name if issue.topic else "Unknown"
-        }
-        
+        # Add basic evidence counts
+        evidence_count = db.query(IssueEvidence).filter(IssueEvidence.issue_id == issue.id).count()
+        if evidence_count > 0:
+            explanation += f"✓ {evidence_count} representative posts linked\n"
+            
         alert = Alert(
             issue_id=issue.id,
-            score=issue.signal_score,
+            title=title_text,
+            explanation=explanation,
+            score=issue.confidence,
             severity=severity,
-            reason=reason,
-            supporting_metrics=supporting_metrics,
-            status="NEW"
+            status="NEW",
+            reason="Confidence threshold crossed"
         )
         db.add(alert)
         new_alerts += 1

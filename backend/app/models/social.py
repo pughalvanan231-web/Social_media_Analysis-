@@ -92,14 +92,42 @@ class EmergingIssue(Base):
     __tablename__ = "emerging_issues"
     
     id = Column(Integer, primary_key=True, index=True)
-    topic_id = Column(Integer, ForeignKey("topics.id"), index=True)
-    signal_score = Column(Float) # 0 to 100
-    signal_level = Column(String) # LOW, MEDIUM, HIGH, CRITICAL
-    contributing_factors = Column(JSON)
+    title = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
     status = Column(String, default="NEW") # NEW, VERIFIED, REJECTED
+    first_detected_at = Column(DateTime(timezone=True), default=func.now())
+    last_updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    activity_change_percent = Column(Float, nullable=True)
+    anomaly_score = Column(Float, nullable=True)
+    sentiment_score = Column(Float, nullable=True)
+    confidence = Column(Float, nullable=True)
+    affected_area = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), default=func.now())
+
+class IntelligenceSignal(Base):
+    __tablename__ = "intelligence_signals"
     
-    topic = relationship("Topic", backref="issues")
+    id = Column(Integer, primary_key=True, index=True)
+    issue_id = Column(Integer, ForeignKey("emerging_issues.id"), index=True)
+    signal_type = Column(String, index=True)
+    value = Column(Float)
+    timestamp = Column(DateTime(timezone=True), default=func.now())
+    source = Column(String)
+    explanation = Column(Text)
+    
+    issue = relationship("EmergingIssue", backref="signals")
+
+class IssueEvidence(Base):
+    __tablename__ = "issue_evidence"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    issue_id = Column(Integer, ForeignKey("emerging_issues.id"), index=True)
+    post_id = Column(Integer, ForeignKey("social_posts.id"), index=True)
+    relevance_score = Column(Float)
+    reason = Column(Text)
+    
+    issue = relationship("EmergingIssue", backref="evidence")
+    post = relationship("SocialPost")
 
 class Location(Base):
     __tablename__ = "locations"
@@ -133,6 +161,9 @@ class SocialPost(Base):
     source_post_id = Column(String, unique=True, index=True)
     author_id = Column(Integer, ForeignKey("authors.id"), nullable=True)
     text = Column(Text)
+    normalized_text = Column(Text, nullable=True)
+    sentiment = Column(String, nullable=True)
+    emotion = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True))
     language = Column(String(10), index=True, nullable=True)
     url = Column(String, nullable=True)
@@ -161,12 +192,16 @@ class Alert(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     issue_id = Column(Integer, ForeignKey("emerging_issues.id"), index=True)
-    score = Column(Float)
+    title = Column(String, nullable=True)
+    explanation = Column(Text, nullable=True)
     severity = Column(String) # CRITICAL, HIGH, MEDIUM, LOW
+    score = Column(Float)
     detected_at = Column(DateTime(timezone=True), default=func.now())
     reason = Column(Text)
     supporting_metrics = Column(JSON)
     status = Column(String, default="NEW") # NEW, REVIEWING, VERIFIED, DISMISSED, RESOLVED
+    acknowledged = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), default=func.now())
     
     issue = relationship("EmergingIssue", backref="alerts")
 

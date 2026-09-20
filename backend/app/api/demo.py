@@ -1,0 +1,122 @@
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from sqlalchemy.orm import Session
+from app.database.connection import get_db, SessionLocal
+from app.models.social import (
+    Topic, TrendSnapshot, SocialPost, EmergingIssue, IntelligenceSignal, 
+    IssueEvidence, Alert, post_topic
+)
+import datetime
+import random
+from app.intelligence.emerging_issues import detect_issues
+from app.ai.alerts import generate_alerts
+
+router = APIRouter(prefix="/api/demo", tags=["Demo"])
+
+def seed_scenario(db: Session, scenario_id: int):
+    # 1. Clear existing intelligence data
+    db.query(Alert).delete()
+    db.query(IssueEvidence).delete()
+    db.query(IntelligenceSignal).delete()
+    db.query(EmergingIssue).delete()
+    db.query(TrendSnapshot).delete()
+    
+    # We must be careful not to delete topics in a way that breaks foreign keys.
+    # We'll just delete the mapping and posts for this demo
+    db.execute(post_topic.delete())
+    db.query(SocialPost).delete()
+    db.query(Topic).delete()
+    db.commit()
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    
+    # Base configuration per scenario
+    if scenario_id == 1:
+        topic_name = "Urban Water Supply"
+        keywords = ["water", "supply", "disruption", "shortage", "dry"]
+        posts_data = [
+            ("x", "No water supply since morning. What is the city council doing? #watercrisis", "negative", 500, now - datetime.timedelta(minutes=10)),
+            ("reddit", "Water problem in our area. Anyone else facing this?", "neutral", 250, now - datetime.timedelta(minutes=20)),
+            ("youtube", "Residents complain about water shortage - Local News", "negative", 1200, now - datetime.timedelta(minutes=50)),
+            ("bluesky", "Still no water. This is ridiculous.", "negative", 150, now - datetime.timedelta(minutes=5)),
+            ("x", "Water trucks seen in downtown.", "neutral", 300, now - datetime.timedelta(minutes=2)),
+        ]
+        history_volumes = [100, 110, 105, 120, 500] # Anomaly at end
+        history_sentiments = [0.5, 0.51, 0.49, 0.4, 0.2] # Shift negative
+        
+    elif scenario_id == 2:
+        topic_name = "Transport Service Disruption"
+        keywords = ["train", "strike", "transit", "delay", "station"]
+        posts_data = [
+            ("x", "All trains cancelled at central. Complete chaos! #transitstrike", "negative", 800, now - datetime.timedelta(minutes=15)),
+            ("reddit", "Is there a sudden strike? I've been waiting for an hour.", "neutral", 400, now - datetime.timedelta(minutes=25)),
+            ("x", "No buses either. The entire network is down.", "negative", 600, now - datetime.timedelta(minutes=10)),
+            ("bluesky", "Stuck at the station, avoid downtown if possible.", "negative", 200, now - datetime.timedelta(minutes=5)),
+            ("youtube", "Live: Commuters stranded as sudden strike hits transit network", "neutral", 2500, now - datetime.timedelta(minutes=30)),
+        ]
+        history_volumes = [200, 190, 210, 250, 1200]
+        history_sentiments = [0.6, 0.58, 0.55, 0.3, 0.15]
+        
+    else:
+        topic_name = "Emerging Public Health Issue"
+        keywords = ["fever", "virus", "symptoms", "sick", "hospital"]
+        posts_data = [
+            ("reddit", "Half my office called in sick today with the same weird fever.", "negative", 600, now - datetime.timedelta(minutes=45)),
+            ("x", "Local hospital ER is completely packed tonight. What's going around?", "negative", 900, now - datetime.timedelta(minutes=30)),
+            ("bluesky", "Anyone else have this sudden fever and cough? It hit me in hours.", "negative", 300, now - datetime.timedelta(minutes=15)),
+            ("x", "Schools reporting 30% absence rate today due to mysterious illness.", "negative", 1500, now - datetime.timedelta(minutes=5)),
+            ("youtube", "Doctors warn of rapid spread of new flu-like virus in the city", "neutral", 3000, now - datetime.timedelta(minutes=60)),
+        ]
+        history_volumes = [50, 60, 55, 80, 800]
+        history_sentiments = [0.5, 0.45, 0.48, 0.35, 0.25]
+        
+    # Create Topic
+    topic = Topic(name=topic_name, keywords=keywords, volume=history_volumes[-1], growth_rate=350.0)
+    db.add(topic)
+    db.commit()
+    
+    # Create Trend Snapshots for timeline (representing hours)
+    for i in range(5):
+        snap = TrendSnapshot(
+            topic_id=topic.id,
+            timestamp=now - datetime.timedelta(hours=5 - i),
+            volume=history_volumes[i],
+            avg_sentiment=history_sentiments[i],
+            total_engagement=history_volumes[i] * random.randint(2, 5)
+        )
+        db.add(snap)
+    db.commit()
+    
+    # Create Posts
+    for i, (plat, text, sent, eng, ts) in enumerate(posts_data):
+        post = SocialPost(
+            platform=plat,
+            source_post_id=f"demo_{scenario_id}_{i}",
+            text=text,
+            sentiment=sent,
+            created_at=ts,
+            topics=[topic] # Links the post to the topic
+        )
+        db.add(post)
+    db.commit()
+
+def run_demo_pipeline(scenario_id: int):
+    db = SessionLocal()
+    try:
+        seed_scenario(db, scenario_id)
+        detect_issues(db)
+        generate_alerts(db)
+    finally:
+        db.close()
+
+@router.post("/run")
+def trigger_demo(scenario_id: int = 1, background_tasks: BackgroundTasks = None):
+    if scenario_id not in [1, 2, 3]:
+        raise HTTPException(status_code=400, detail="Invalid scenario ID. Must be 1, 2, or 3.")
+        
+    if background_tasks:
+        background_tasks.add_task(run_demo_pipeline, scenario_id)
+        return {"status": "accepted", "message": "Demo pipeline started."}
+    else:
+        # Run synchronously if no background_tasks (e.g. simple test)
+        run_demo_pipeline(scenario_id)
+        return {"status": "success", "message": "Demo pipeline finished."}

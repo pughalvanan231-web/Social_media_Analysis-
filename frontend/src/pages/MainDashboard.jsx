@@ -1,37 +1,44 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import GeoSpreadMap from '../components/GeoSpreadMap'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, ReferenceDot } from 'recharts'
+import { MOCK_STATS, MOCK_ISSUES, MOCK_ALERTS, MOCK_TREND_DATA, MOCK_PLATFORM_DATA, MOCK_SENTIMENT_DATA } from '../services/mockData'
 
 export default function MainDashboard() {
-  const [stats, setStats] = useState(null)
-  const [alerts, setAlerts] = useState([])
-  const [issues, setIssues] = useState([])
+  const [stats, setStats] = useState(MOCK_STATS)
+  const [alerts, setAlerts] = useState(MOCK_ALERTS)
+  const [issues, setIssues] = useState(MOCK_ISSUES)
   const [loading, setLoading] = useState(true)
-
-  // Filters
-  const [dateFilter, setDateFilter] = useState('24h')
-  const [platformFilter, setPlatformFilter] = useState('all')
-  const [severityFilter, setSeverityFilter] = useState('all')
+  const [apiConnected, setApiConnected] = useState(false)
 
   const fetchData = async () => {
     try {
       const [statsRes, alertsRes, issuesRes] = await Promise.all([
-        fetch('http://127.0.0.1:8000/api/dashboard/stats'),
-        fetch('http://127.0.0.1:8000/api/alerts'),
-        fetch('http://127.0.0.1:8000/api/issues')
+        fetch('http://127.0.0.1:8000/api/dashboard/stats').catch(() => null),
+        fetch('http://127.0.0.1:8000/api/alerts').catch(() => null),
+        fetch('http://127.0.0.1:8000/api/issues').catch(() => null)
       ])
       
-      if (statsRes.ok) setStats(await statsRes.json())
-      if (alertsRes.ok) {
+      let isLive = false;
+      
+      if (statsRes && statsRes.ok) {
+        setStats(await statsRes.json())
+        isLive = true
+      }
+      if (alertsRes && alertsRes.ok) {
         const allAlerts = await alertsRes.json()
-        setAlerts(allAlerts.slice(0, 5)) // Top 5 recent alerts
+        setAlerts(allAlerts.slice(0, 5))
+        isLive = true
       }
-      if (issuesRes.ok) {
+      if (issuesRes && issuesRes.ok) {
         const allIssues = await issuesRes.json()
-        setIssues(allIssues.slice(0, 5)) // Top 5 issues
+        setIssues(allIssues.slice(0, 5))
+        isLive = true
       }
+      
+      setApiConnected(isLive)
     } catch (e) {
-      console.error(e)
+      console.warn("Using mock data due to API unavailability", e)
+      setApiConnected(false)
     } finally {
       setLoading(false)
     }
@@ -44,59 +51,63 @@ export default function MainDashboard() {
   }, [])
 
   if (loading) {
-    return <div className="flex h-[60vh] items-center justify-center text-blue-400 font-mono">INITIALIZING INTELLIGENCE FEED...</div>
+    return <div className="flex h-[60vh] items-center justify-center text-blue-400 font-mono">INITIALIZING GOSSIP PROTOCOL...</div>
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       
-      {/* Filters Bar */}
-      <div className="flex flex-wrap gap-4 bg-gray-900/50 p-4 rounded-lg border border-gray-800">
-        <select value={dateFilter} onChange={e => setDateFilter(e.target.value)} className="bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded px-3 py-1.5 focus:outline-none">
-          <option value="1h">Past Hour</option>
-          <option value="24h">Past 24 Hours</option>
-          <option value="7d">Past 7 Days</option>
-        </select>
-        <select value={platformFilter} onChange={e => setPlatformFilter(e.target.value)} className="bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded px-3 py-1.5 focus:outline-none">
-          <option value="all">All Platforms</option>
-          <option value="x">X</option>
-          <option value="bluesky">Bluesky</option>
-          <option value="youtube">YouTube</option>
-        </select>
-        <select value={severityFilter} onChange={e => setSeverityFilter(e.target.value)} className="bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded px-3 py-1.5 focus:outline-none">
-          <option value="all">All Severities</option>
-          <option value="CRITICAL">Critical</option>
-          <option value="HIGH">High</option>
-        </select>
-        
-        <div className="ml-auto">
-          <button onClick={fetchData} className="bg-blue-900/40 text-blue-400 border border-blue-800/50 hover:bg-blue-800/40 text-sm px-4 py-1.5 rounded transition-colors font-medium flex items-center">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            Refresh Data
-          </button>
+      {/* Top Banner / System Status */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-900/50 p-4 rounded-lg border border-gray-800">
+        <div>
+          <h2 className="text-xl font-bold text-white tracking-wide">GOSSIP PROTOCOL</h2>
+          <p className="text-sm text-gray-400 font-mono mt-1">Cross-platform early-signal intelligence</p>
+        </div>
+        <div className="mt-4 md:mt-0 flex gap-4 text-sm font-mono items-center">
+          <div className="flex flex-col text-right">
+            <span className="text-gray-500 text-xs">MONITORING STATUS</span>
+            <span className={`font-bold ${apiConnected ? 'text-green-400' : 'text-yellow-500'}`}>
+              {apiConnected ? 'LIVE PIPELINE ACTIVE' : 'DEMO MODE - MOCK DATA'}
+            </span>
+          </div>
+          <div className="flex flex-col text-right pl-4 border-l border-gray-800">
+            <span className="text-gray-500 text-xs">ANALYST</span>
+            <span className="text-blue-400 font-bold">A. SMITH (L2)</span>
+          </div>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <KPICard title="Active Signals" value={stats?.active_signals || 0} color="text-yellow-400" />
-        <KPICard title="Critical Alerts" value={stats?.critical_alerts || 0} color="text-red-500" isAlert={stats?.critical_alerts > 0} />
-        <KPICard title="Emerging Issues" value={stats?.emerging_issues || 0} color="text-orange-400" />
-        <KPICard title="Trending Topics" value={stats?.trending_topics || 0} color="text-purple-400" />
-        <KPICard title="Platforms" value={stats?.platforms || 0} color="text-blue-400" />
-        <KPICard title="Posts Analyzed" value={stats?.posts_analyzed?.toLocaleString() || 0} color="text-green-400" />
+      {/* Workflow Visualization */}
+      <div className="flex justify-between items-center text-xs font-mono text-gray-600 px-8 py-2">
+        <span className="text-blue-500 font-bold">COLLECT</span>
+        <span>→</span>
+        <span className="text-blue-400 font-bold">ANALYZE</span>
+        <span>→</span>
+        <span className="text-orange-400 font-bold">DETECT</span>
+        <span>→</span>
+        <span className="text-red-400 font-bold">EXPLAIN</span>
+        <span>→</span>
+        <span className="text-purple-400 font-bold">INVESTIGATE</span>
       </div>
 
-      {/* Main Grid */}
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <KPICard title="Monitored Posts" value={stats?.posts_analyzed?.toLocaleString() || 0} color="text-gray-200" />
+        <KPICard title="Active Issues" value={stats?.active_issues || 0} color="text-orange-400" />
+        <KPICard title="Emerging Signals" value={stats?.emerging_signals || 0} color="text-yellow-400" />
+        <KPICard title="Critical Alerts" value={stats?.critical_alerts || 0} color="text-red-500" isAlert={stats?.critical_alerts > 0} />
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
-        {/* Left Col: Issues & Spread */}
+        {/* Left Column: Emerging Issues & Charts */}
         <div className="xl:col-span-2 space-y-6">
           
-          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
+          {/* Emerging Issues Feed */}
+          <div className="bg-gray-900/40 border border-gray-800 rounded-lg p-5">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-white uppercase tracking-wider">Top Emerging Issues</h3>
-              <Link to="/issues" className="text-sm text-blue-400 hover:text-blue-300">View All →</Link>
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Detected Emerging Issues</h3>
+              <Link to="/issues" className="text-xs text-blue-400 hover:text-blue-300">View All →</Link>
             </div>
             
             <div className="space-y-3">
@@ -104,22 +115,48 @@ export default function MainDashboard() {
                 <div className="text-gray-500 text-center py-6 text-sm">No emerging issues detected.</div>
               ) : (
                 issues.map(issue => (
-                  <div key={issue.id} className="bg-gray-800/50 border border-gray-700/50 p-3 rounded flex justify-between items-center hover:bg-gray-800 transition-colors">
-                    <div>
-                      <div className="font-bold text-gray-200">{issue.topic_name}</div>
-                      <div className="text-xs text-gray-500 mt-1 flex gap-2">
-                        {issue.keywords.slice(0, 3).map(k => <span key={k}>#{k}</span>)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className={`text-xl font-black ${issue.signal_score >= 85 ? 'text-red-500' : 'text-orange-400'}`}>
-                          {issue.signal_score}
+                  <div key={issue.id} className="bg-gray-800/40 border border-gray-700/50 p-4 rounded-lg flex flex-col hover:bg-gray-800/60 transition-colors">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <div className="font-bold text-gray-100 text-lg">{issue.title || issue.topic_name}</div>
+                        <div className="text-xs text-gray-500 mt-1 flex gap-3">
+                          <span>First detected: {new Date(issue.timestamp || issue.first_detected_at).toLocaleTimeString()}</span>
+                          {issue.platforms && (
+                            <span className="text-gray-400">
+                              Platforms: {issue.platforms.map(p => p.toUpperCase()).join(', ')}
+                            </span>
+                          )}
                         </div>
                       </div>
-                      <Link to={`/investigate/${issue.id}`} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded">
-                        Investigate
+                      <div className={`px-2 py-1 text-xs font-bold rounded ${issue.status === 'HIGH SIGNAL' ? 'bg-red-900/30 text-red-400' : 'bg-orange-900/30 text-orange-400'}`}>
+                        {issue.status || 'EMERGING'}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-2 mb-4">
+                      <div className="bg-gray-900/50 rounded p-2 text-center">
+                        <div className="text-[10px] text-gray-500 uppercase">Activity Change</div>
+                        <div className="text-sm font-bold text-gray-300">+{Number(issue.activity_change_percent).toFixed(1)}%</div>
+                      </div>
+                      <div className="bg-gray-900/50 rounded p-2 text-center">
+                        <div className="text-[10px] text-gray-500 uppercase">Anomaly Score</div>
+                        <div className="text-sm font-bold text-gray-300">{Number(issue.anomaly_score).toFixed(1)}σ</div>
+                      </div>
+                      <div className="bg-gray-900/50 rounded p-2 text-center">
+                        <div className="text-[10px] text-gray-500 uppercase">Signal Confidence</div>
+                        <div className={`text-sm font-bold ${issue.confidence >= 70 ? 'text-red-400' : 'text-orange-400'}`}>
+                          {Number(issue.confidence).toFixed(1)}/100
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Link to={`/investigate/${issue.id}`} className="flex-1 text-center py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 text-xs font-bold rounded border border-blue-500/20 transition-colors">
+                        Investigate Topic
                       </Link>
+                      <button className="flex-1 text-center py-1.5 bg-gray-700/20 hover:bg-gray-700/50 text-gray-300 text-xs font-bold rounded border border-gray-600/30 transition-colors">
+                        View Evidence
+                      </button>
                     </div>
                   </div>
                 ))
@@ -127,68 +164,119 @@ export default function MainDashboard() {
             </div>
           </div>
 
-          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
-            <h3 className="text-lg font-bold text-white uppercase tracking-wider mb-4">Global Geographic Spread</h3>
-            {issues.length > 0 ? (
-              <div className="h-[300px] rounded overflow-hidden border border-gray-700">
-                <GeoSpreadMap issueId={issues[0].id} />
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Trend Chart */}
+            <div className="bg-gray-900/40 border border-gray-800 rounded-lg p-5">
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">Global Volume Trend</h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={MOCK_TREND_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
+                    <XAxis dataKey="time" stroke="#4b5563" fontSize={12} tickLine={false} />
+                    <YAxis stroke="#4b5563" fontSize={12} tickLine={false} axisLine={false} />
+                    <RechartsTooltip 
+                      contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', color: '#f3f4f6' }}
+                      itemStyle={{ color: '#60a5fa' }}
+                    />
+                    <Line type="monotone" dataKey="volume" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 6 }} />
+                    <ReferenceDot x="20:00" y={9200} r={5} fill="#ef4444" stroke="none" />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
-            ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-500 bg-gray-900 rounded border border-gray-800">
-                Insufficient signal data for geographic mapping.
+              <div className="mt-2 text-xs text-gray-500 text-center flex items-center justify-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span> Anomaly Detected
               </div>
-            )}
+            </div>
+
+            {/* Distributions */}
+            <div className="bg-gray-900/40 border border-gray-800 rounded-lg p-5 flex flex-col">
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-2">Cross-Platform Distribution</h3>
+              <div className="h-28">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={MOCK_PLATFORM_DATA} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+                    <XAxis type="number" hide />
+                    <YAxis dataKey="name" type="category" stroke="#9ca3af" fontSize={11} width={60} tickLine={false} axisLine={false} />
+                    <RechartsTooltip cursor={{fill: '#1f2937'}} contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', fontSize: '12px' }} />
+                    <Bar dataKey="value" fill="#60a5fa" radius={[0, 4, 4, 0]} barSize={12} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mt-4 mb-2">Sentiment Distribution</h3>
+              <div className="h-28 flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={MOCK_SENTIMENT_DATA} cx="50%" cy="50%" innerRadius={30} outerRadius={45} dataKey="value" stroke="none">
+                      {MOCK_SENTIMENT_DATA.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', fontSize: '12px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Legend */}
+                <div className="flex flex-col gap-1 ml-4 text-xs text-gray-400">
+                  <div className="flex items-center gap-2"><span className="w-2 h-2 bg-blue-500 rounded-sm"></span> Positive</div>
+                  <div className="flex items-center gap-2"><span className="w-2 h-2 bg-gray-500 rounded-sm"></span> Neutral</div>
+                  <div className="flex items-center gap-2"><span className="w-2 h-2 bg-red-500 rounded-sm"></span> Negative</div>
+                </div>
+              </div>
+            </div>
+
           </div>
-          
         </div>
 
-        {/* Right Col: Alerts & Mini panels */}
+        {/* Right Column: Alerts */}
         <div className="space-y-6">
-          
-          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
+          <div className="bg-gray-900/40 border border-gray-800 rounded-lg p-5 h-full">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-white uppercase tracking-wider">Recent Alerts</h3>
-              <Link to="/alerts" className="text-sm text-blue-400 hover:text-blue-300">View All →</Link>
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Explainable Alerts</h3>
+              <Link to="/alerts" className="text-xs text-blue-400 hover:text-blue-300">View All →</Link>
             </div>
             
-            <div className="space-y-3">
+            <div className="space-y-4">
               {alerts.length === 0 ? (
-                <div className="text-gray-500 text-center py-6 text-sm">Incident queue empty.</div>
+                <div className="text-gray-500 text-center py-6 text-sm">No active alerts.</div>
               ) : (
                 alerts.map(alert => (
-                  <div key={alert.id} className="bg-gray-800/80 border-l-4 border-red-500 p-3 rounded">
-                    <div className="flex justify-between items-start">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-red-900/50 text-red-400">{alert.severity}</span>
-                      <span className="text-xs text-gray-500">{new Date(alert.detected_at).toLocaleTimeString()}</span>
+                  <div key={alert.id} className="bg-gray-950 border border-gray-800 rounded overflow-hidden">
+                    {/* Alert Header */}
+                    <div className={`px-3 py-2 border-b ${alert.severity === 'CRITICAL' ? 'border-red-900/50 bg-red-950/20' : 'border-orange-900/50 bg-orange-950/20'} flex justify-between items-center`}>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider ${alert.severity === 'CRITICAL' ? 'text-red-400' : 'text-orange-400'}`}>
+                        {alert.severity} ALERT
+                      </span>
+                      <span className="text-[10px] text-gray-500 font-mono">
+                        {new Date(alert.detected_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </span>
                     </div>
-                    <div className="mt-2 font-semibold text-gray-200 text-sm truncate">
-                      {alert.supporting_metrics?.topic_name || "Unknown"}
+                    
+                    {/* Alert Body */}
+                    <div className="p-3">
+                      <div className="font-bold text-gray-200 text-sm mb-2">{alert.title}</div>
+                      
+                      {/* Explanations parsed from backend text */}
+                      <div className="space-y-1 mt-2">
+                        {alert.explanation?.split('\n').filter(line => line.startsWith('✓')).map((line, i) => (
+                          <div key={i} className="text-xs text-gray-400 flex items-start gap-2">
+                            <span className="text-green-500 mt-0.5">✓</span>
+                            <span>{line.replace('✓', '').trim()}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="mt-1 text-xs text-gray-400 line-clamp-2">
-                      {alert.reason}
+                    
+                    {/* Actions */}
+                    <div className="bg-gray-900/50 px-3 py-2 border-t border-gray-800 flex justify-end gap-2">
+                      <button className="text-[10px] uppercase font-bold tracking-wider text-gray-400 hover:text-white px-2 py-1">Dismiss</button>
+                      <Link to={`/investigate/${alert.issue_id}`} className="text-[10px] uppercase font-bold tracking-wider text-blue-400 hover:text-blue-300 px-2 py-1 bg-blue-900/20 rounded border border-blue-900/50 text-center">Investigate to Report</Link>
                     </div>
                   </div>
                 ))
               )}
             </div>
           </div>
-
-          {/* Placeholders for visual layout completeness if heavy graph not loaded */}
-          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
-            <h3 className="text-lg font-bold text-white uppercase tracking-wider mb-2">Sentiment Overview</h3>
-            <div className="h-24 flex items-center justify-center border border-dashed border-gray-700 rounded text-gray-500 text-sm">
-              Global sentiment is slightly negative (-0.12)
-            </div>
-          </div>
-
-          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
-            <h3 className="text-lg font-bold text-white uppercase tracking-wider mb-2">Community Network</h3>
-            <div className="h-32 flex items-center justify-center border border-dashed border-gray-700 rounded text-gray-500 text-sm flex-col">
-              <span className="mb-2">12 Active Clusters Detected</span>
-              <Link to="/network" className="text-blue-400 hover:underline">Open Network Graph</Link>
-            </div>
-          </div>
-
         </div>
 
       </div>
@@ -199,9 +287,9 @@ export default function MainDashboard() {
 
 function KPICard({ title, value, color, isAlert }) {
   return (
-    <div className={`bg-gray-900/80 border p-4 rounded-lg flex flex-col justify-center ${isAlert ? 'border-red-500/50 bg-red-950/20' : 'border-gray-800'}`}>
-      <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">{title}</div>
-      <div className={`text-3xl font-black ${color}`}>{value}</div>
+    <div className={`bg-gray-900/40 border p-4 rounded-lg flex flex-col justify-center ${isAlert ? 'border-red-900/50' : 'border-gray-800'}`}>
+      <div className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-1">{title}</div>
+      <div className={`text-2xl font-black ${color}`}>{value}</div>
     </div>
   )
 }

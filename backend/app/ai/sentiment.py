@@ -10,7 +10,15 @@ sentiment_pipeline = pipeline(
     model="cardiffnlp/twitter-roberta-base-sentiment-latest", 
     device=0 if torch.cuda.is_available() else -1
 )
-print("Model loaded successfully.")
+
+print("Loading local Hugging Face emotion model...")
+# Secondary pipeline for nuanced emotions (anger, fear/anxiety, joy, sadness, etc.)
+emotion_pipeline = pipeline(
+    "text-classification",
+    model="j-hartmann/emotion-english-distilroberta-base",
+    device=0 if torch.cuda.is_available() else -1
+)
+print("Models loaded successfully.")
 
 def normalize_label(label: str) -> str:
     """Normalize the raw model output into standard positive/neutral/negative."""
@@ -51,6 +59,10 @@ def analyze_posts_batch(db: Session, batch_size: int = 50):
                 confidence = result['score']
                 
                 sentiment = normalize_label(raw_label)
+                
+                # Detect Nuanced Emotion
+                emotion_res = emotion_pipeline(text_to_analyze)[0]
+                post.emotion = emotion_res['label'] # e.g., joy, fear, anger, sadness, surprise
                 
                 # Convert confidence to a "score" where positive = high, negative = low
                 # e.g., if negative and confidence 0.9, score is 0.1

@@ -86,6 +86,15 @@ export default function SidebarLayout({ children }) {
           </div>
           
           <div className="hidden md:flex items-center space-x-4 ml-auto">
+            <button 
+              onClick={() => {
+                document.documentElement.classList.toggle('light-theme')
+                // Basic implementation for the button. The actual CSS variables would need to be defined in index.css
+              }}
+              className="px-3 py-1.5 rounded bg-gray-800 border border-gray-700 text-gray-300 hover:text-white hover:bg-gray-700 text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2"
+            >
+              Toggle Theme
+            </button>
             <span className="flex items-center text-xs font-mono text-green-400 bg-green-900/20 px-2 py-1 rounded border border-green-800/50">
               <span className="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
               LIVE

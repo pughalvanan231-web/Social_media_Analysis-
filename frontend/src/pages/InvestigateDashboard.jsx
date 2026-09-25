@@ -59,7 +59,11 @@ export default function InvestigateDashboard() {
 
       if (timeRes && timeRes.ok) {
         const timeData = await timeRes.json()
-        setTimeline(timeData.length ? timeData : MOCK_TREND_DATA)
+        const formattedData = timeData.map(d => ({
+          ...d,
+          time: d.timestamp ? new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : d.time,
+        }))
+        setTimeline(formattedData.length ? formattedData : MOCK_TREND_DATA)
       } else {
         setTimeline(MOCK_TREND_DATA)
       }
@@ -248,7 +252,23 @@ export default function InvestigateDashboard() {
                   <p className="text-sm text-gray-300 pl-2 mb-3">{ev.text}</p>
                   <div className="pl-2 flex justify-between items-center bg-gray-900/50 p-2 rounded text-xs">
                     <span className="text-green-400 font-bold">{ev.reason}</span>
-                    <a href={ev.url} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">View Source ↗</a>
+                    <a 
+                      href={ev.url || (() => {
+                        const q = encodeURIComponent(ev.text.substring(0, 50));
+                        switch((ev.platform || '').toLowerCase()) {
+                          case 'x': case 'twitter': return `https://twitter.com/search?q=${q}`;
+                          case 'reddit': return `https://www.reddit.com/search/?q=${q}`;
+                          case 'youtube': return `https://www.youtube.com/results?search_query=${q}`;
+                          case 'bluesky': return `https://bsky.app/search?q=${q}`;
+                          default: return `https://google.com/search?q=${q}`;
+                        }
+                      })()} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="text-blue-400 hover:underline"
+                    >
+                      {ev.url ? 'View Source ↗' : 'Search Source ↗'}
+                    </a>
                   </div>
                 </div>
               ))}

@@ -27,3 +27,18 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+/* Quick Light Theme Hack */
+html.light-theme {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+html.light-theme img, 
+html.light-theme video {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Prevent double-inverting the map tiles, so the dark map becomes a light map */
+html.light-theme .leaflet-container img {
+  filter: none;
+}

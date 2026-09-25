@@ -87,3 +87,28 @@ def search_reddit(q: str = Query(..., description="Keyword to search for"), subr
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+from app.connectors.telegram_connector import search_telegram_posts, TelegramApiNotConfiguredError
+
+@router.get("/telegram/search")
+def search_telegram(channel: str = Query(..., description="Target channel username (e.g. t.me/channelname)"), limit: int = Query(10), db: Session = Depends(get_db)):
+    if not channel:
+        raise HTTPException(status_code=400, detail="Channel username is required")
+        
+    try:
+        saved_posts = search_telegram_posts(channel_username=channel, limit=limit)
+        return {
+            "platform": "telegram",
+            "count": len(saved_posts),
+            "posts": saved_posts
+        }
+    except TelegramApiNotConfiguredError as e:
+        return JSONResponse(
+            status_code=200,
+            content={
+                "available": False,
+                "message": str(e)
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

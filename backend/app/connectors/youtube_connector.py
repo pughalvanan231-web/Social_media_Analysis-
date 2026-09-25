@@ -1,6 +1,6 @@
 import os
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.schemas.social import SocialPostCreate
 
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
@@ -12,6 +12,9 @@ def search_youtube_videos(keyword: str, limit: int = 10) -> list:
     if not YOUTUBE_API_KEY:
         raise ValueError("YOUTUBE_API_KEY is missing from environment variables.")
 
+    # Calculate date 30 days ago for recent trending videos
+    thirty_days_ago = (datetime.utcnow() - timedelta(days=30)).isoformat("T") + "Z"
+
     # 1. Search for videos by keyword
     search_endpoint = "https://www.googleapis.com/youtube/v3/search"
     search_params = {
@@ -19,6 +22,8 @@ def search_youtube_videos(keyword: str, limit: int = 10) -> list:
         "q": keyword,
         "type": "video",
         "maxResults": limit,
+        "order": "viewCount",
+        "publishedAfter": thirty_days_ago,
         "key": YOUTUBE_API_KEY
     }
     

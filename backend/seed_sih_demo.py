@@ -99,25 +99,29 @@ def generate_water_scenario(db):
     post1 = SocialPost(
         platform="x", source_post_id="p1", author_id=authors[0].id,
         text="The water pressure seems a bit low today in Sector 4. Anyone else noticing this? #water",
-        created_at=now - timedelta(hours=70), language="en", url="https://x.com/p1"
+        created_at=now - timedelta(hours=70), language="en", url="https://x.com/p1",
+        emotion="neutral"
     )
     # T-24: Increasing discussion
     post2 = SocialPost(
         platform="reddit", source_post_id="p2", author_id=authors[3].id,
         text="I've been getting calls all morning from the downtown area about brown water coming from taps. Seems like a main line issue.",
-        created_at=now - timedelta(hours=22), language="en", url="https://reddit.com/p2"
+        created_at=now - timedelta(hours=22), language="en", url="https://reddit.com/p2",
+        emotion="surprise"
     )
     # T-12: Spike & Sentiment Drop
     post3 = SocialPost(
         platform="x", source_post_id="p3", author_id=authors[1].id,
         text="THIS IS UNACCEPTABLE! We have no water for 6 hours and what comes out is literally brown sludge. The city is silent! @MetroGov #WaterCrisis #MetroDisaster",
-        created_at=now - timedelta(hours=10), language="en", url="https://x.com/p3"
+        created_at=now - timedelta(hours=10), language="en", url="https://x.com/p3",
+        emotion="anger"
     )
     # T-6: Community Spread & Narrative
     post4 = SocialPost(
         platform="bluesky", source_post_id="p4", author_id=authors[2].id,
         text="BREAKING: Thousands of residents reporting complete water outages and severe contamination across 12 sectors. Preliminary reports suggest a catastrophic failure at the central pumping station.",
-        created_at=now - timedelta(hours=5), language="en", url="https://bsky.app/p4"
+        created_at=now - timedelta(hours=5), language="en", url="https://bsky.app/p4",
+        emotion="fear"
     )
     
     db.add_all([post1, post2, post3, post4])

@@ -56,7 +56,7 @@ def seed_scenario(db: Session, scenario_id: int):
         history_volumes = [200, 190, 210, 250, 1200]
         history_sentiments = [0.6, 0.58, 0.55, 0.3, 0.15]
         
-    else:
+    elif scenario_id == 3:
         topic_name = "Emerging Public Health Issue"
         keywords = ["fever", "dengue", "symptoms", "hospital", "sick"]
         posts_data = [
@@ -68,6 +68,19 @@ def seed_scenario(db: Session, scenario_id: int):
         ]
         history_volumes = [50, 60, 55, 80, 800]
         history_sentiments = [0.5, 0.45, 0.48, 0.35, 0.25]
+        
+    elif scenario_id == 4:
+        topic_name = "Major Power Grid Failure"
+        keywords = ["power", "outage", "electricity", "blackout", "grid"]
+        posts_data = [
+            ("x", "Half of South Mumbai is in the dark right now. Massive blackout? #mumbaipowercut", "negative", 1200, now - datetime.timedelta(minutes=10)),
+            ("reddit", "No electricity in Indiranagar since 3 hours. BESCOM not responding.", "negative", 500, now - datetime.timedelta(minutes=20)),
+            ("bluesky", "Traffic lights are down everywhere due to the grid failure. Complete jam.", "negative", 300, now - datetime.timedelta(minutes=5)),
+            ("youtube", "Breaking: Northern Grid fails, multiple states plunged into darkness.", "neutral", 5000, now - datetime.timedelta(minutes=35)),
+            ("x", "My inverter is running out, need this power issue fixed ASAP.", "negative", 800, now - datetime.timedelta(minutes=15)),
+        ]
+        history_volumes = [80, 75, 90, 400, 1500]
+        history_sentiments = [0.5, 0.52, 0.48, 0.25, 0.1]
         
     # Create Topic
     topic = Topic(name=topic_name, keywords=keywords, volume=history_volumes[-1], growth_rate=350.0)
@@ -110,8 +123,8 @@ def run_demo_pipeline(scenario_id: int):
 
 @router.post("/run")
 def trigger_demo(scenario_id: int = 1, background_tasks: BackgroundTasks = None):
-    if scenario_id not in [1, 2, 3]:
-        raise HTTPException(status_code=400, detail="Invalid scenario ID. Must be 1, 2, or 3.")
+    if scenario_id not in [1, 2, 3, 4]:
+        raise HTTPException(status_code=400, detail="Invalid scenario ID. Must be 1, 2, 3, or 4.")
         
     if background_tasks:
         background_tasks.add_task(run_demo_pipeline, scenario_id)

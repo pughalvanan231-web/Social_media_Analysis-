@@ -3,7 +3,8 @@ import React, { useState } from 'react'
 const SCENARIOS = [
   { id: 1, name: "Urban Water Supply Disruption" },
   { id: 2, name: "Transport Service Disruption" },
-  { id: 3, name: "Emerging Public Health Issue" }
+  { id: 3, name: "Emerging Public Health Issue" },
+  { id: 4, name: "Major Power Grid Failure" }
 ];
 
 const PROCESSING_STEPS = [

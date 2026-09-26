@@ -1,11 +1,6 @@
 import React, { useState } from 'react'
 
-const SCENARIOS = [
-  { id: 1, name: "Urban Water Supply Disruption" },
-  { id: 2, name: "Transport Service Disruption" },
-  { id: 3, name: "Emerging Public Health Issue" },
-  { id: 4, name: "Major Power Grid Failure" }
-];
+
 
 const PROCESSING_STEPS = [
   "Collecting signals...",
@@ -20,7 +15,6 @@ const PROCESSING_STEPS = [
 
 export default function DemoController({ onComplete }) {
   const [isOpen, setIsOpen] = useState(false)
-  const [selectedScenario, setSelectedScenario] = useState(1)
   const [isProcessing, setIsProcessing] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
 
@@ -29,7 +23,7 @@ export default function DemoController({ onComplete }) {
     setCurrentStep(0)
 
     // Trigger backend pipeline (no await yet to let UI play)
-    const backendPromise = fetch(`http://127.0.0.1:8000/api/demo/run?scenario_id=${selectedScenario}`, {
+    const backendPromise = fetch(`http://127.0.0.1:8000/api/demo/run`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}` // In case auth is needed
@@ -104,26 +98,11 @@ export default function DemoController({ onComplete }) {
         ) : (
           <>
             <p className="text-xs text-gray-400">
-              Select a scenario to seed mock data and run it through the live Intelligence Engine.
+              Click the button below to automatically select a random emerging issue and run a live intelligence scan against social media.
             </p>
-            <div className="space-y-2">
-              {SCENARIOS.map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => setSelectedScenario(s.id)}
-                  className={`w-full text-left px-3 py-2 text-sm rounded border transition-colors ${
-                    selectedScenario === s.id 
-                      ? 'bg-blue-900/30 border-blue-500 text-blue-400 font-bold' 
-                      : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
-                  }`}
-                >
-                  {s.name}
-                </button>
-              ))}
-            </div>
             <button 
               onClick={runDemo}
-              className="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest py-3 rounded shadow-lg shadow-blue-900/20"
+              className="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest py-3 rounded shadow-lg shadow-blue-900/20 transition-colors"
             >
               RUN INTELLIGENCE SCAN
             </button>

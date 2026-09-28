@@ -6,16 +6,11 @@ import MainDashboard from './pages/MainDashboard'
 import PipelineDashboard from './pages/PipelineDashboard'
 import SentimentDashboard from './pages/SentimentDashboard'
 import IntelligenceDashboard from './pages/IntelligenceDashboard'
-import NarrativesDashboard from './pages/NarrativesDashboard'
 import FeedIntelligence from './pages/FeedIntelligence'
 import TrendsDashboard from './pages/TrendsDashboard'
-import IssuesDashboard from './pages/IssuesDashboard'
 import NetworkDashboard from './pages/NetworkDashboard'
 import AlertsDashboard from './pages/AlertsDashboard'
 import InvestigateDashboard from './pages/InvestigateDashboard'
-import FeedbackAnalytics from './pages/FeedbackAnalytics'
-import BlueskySearch from './pages/BlueskySearch'
-import YoutubeSearch from './pages/YoutubeSearch'
 import LoginPage from './pages/LoginPage'
 import DemoController from './components/DemoController'
 
@@ -51,21 +46,24 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         
-        {/* Protected Routes */}
+        {/* Core Consolidated Intelligence Routes */}
         <Route path="/" element={<ProtectedRoute><MainDashboard /></ProtectedRoute>} />
-        <Route path="/pipeline" element={<ProtectedRoute><PipelineDashboard /></ProtectedRoute>} />
+        <Route path="/alerts" element={<ProtectedRoute><AlertsDashboard /></ProtectedRoute>} />
+        <Route path="/trends" element={<ProtectedRoute><TrendsDashboard /></ProtectedRoute>} />
         <Route path="/sentiment" element={<ProtectedRoute><SentimentDashboard /></ProtectedRoute>} />
         <Route path="/sentiment/feed/:feedId" element={<ProtectedRoute><FeedIntelligence /></ProtectedRoute>} />
         <Route path="/intelligence" element={<ProtectedRoute><IntelligenceDashboard /></ProtectedRoute>} />
-        <Route path="/narratives" element={<ProtectedRoute><NarrativesDashboard /></ProtectedRoute>} />
-        <Route path="/trends" element={<ProtectedRoute><TrendsDashboard /></ProtectedRoute>} />
-        <Route path="/issues" element={<ProtectedRoute><IssuesDashboard /></ProtectedRoute>} />
-        <Route path="/alerts" element={<ProtectedRoute><AlertsDashboard /></ProtectedRoute>} />
-        <Route path="/investigate/:issueId" element={<ProtectedRoute><InvestigateDashboard /></ProtectedRoute>} />
-        <Route path="/feedback" element={<ProtectedRoute><FeedbackAnalytics /></ProtectedRoute>} />
         <Route path="/network" element={<ProtectedRoute><NetworkDashboard /></ProtectedRoute>} />
-        <Route path="/sources/bluesky" element={<ProtectedRoute><BlueskySearch /></ProtectedRoute>} />
-        <Route path="/sources/youtube" element={<ProtectedRoute><YoutubeSearch /></ProtectedRoute>} />
+        <Route path="/pipeline" element={<ProtectedRoute><PipelineDashboard /></ProtectedRoute>} />
+        <Route path="/investigate/:issueId" element={<ProtectedRoute><InvestigateDashboard /></ProtectedRoute>} />
+
+        {/* Backward-Compatible Consolidated Redirects */}
+        <Route path="/issues" element={<Navigate to="/alerts?tab=issues" replace />} />
+        <Route path="/feedback" element={<Navigate to="/alerts?tab=feedback" replace />} />
+        <Route path="/narratives" element={<Navigate to="/intelligence?tab=narratives" replace />} />
+        <Route path="/sources/bluesky" element={<Navigate to="/pipeline?tab=bluesky" replace />} />
+        <Route path="/sources/youtube" element={<Navigate to="/pipeline?tab=youtube" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
   )

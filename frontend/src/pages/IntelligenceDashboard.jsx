@@ -1,10 +1,35 @@
 import React, { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { Layers, GitBranch, Zap, Sparkles, AlertTriangle, RefreshCw, ChevronRight, MessageSquare, TrendingUp, CheckCircle2 } from 'lucide-react'
 
 export default function IntelligenceDashboard() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const initialTab = searchParams.get('tab') || 'narratives'
+  const [activeTab, setActiveTab] = useState(initialTab) // 'narratives' | 'topics' | 'risk'
+
   const [running, setRunning] = useState(false)
   const [message, setMessage] = useState('')
   const [narratives, setNarratives] = useState({ rapid: [], emerging: [], major: [] })
+  const [allTopics, setAllTopics] = useState([])
+  const [selectedTopic, setSelectedTopic] = useState(null)
+  const [topicDetail, setTopicDetail] = useState(null)
+  const [loadingTopicDetail, setLoadingTopicDetail] = useState(false)
+  const [topRiskPost, setTopRiskPost] = useState(null)
+  const [loadingRisk, setLoadingRisk] = useState(false)
   const [loading, setLoading] = useState(true)
+
+  // Sync tab with URL
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab && ['narratives', 'topics', 'risk'].includes(tab)) {
+      setActiveTab(tab)
+    }
+  }, [searchParams])
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+    setSearchParams({ tab })
+  }
 
   const fetchNarratives = async () => {
     try {
@@ -19,16 +44,64 @@ export default function IntelligenceDashboard() {
       }
     } catch (err) {
       console.error("Failed to fetch narratives", err)
-    } finally {
-      setLoading(false)
     }
   }
 
+  const fetchAllTopics = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/intelligence/topics')
+      if (response.ok) {
+        const data = await response.json()
+        setAllTopics(data || [])
+      }
+    } catch (err) {
+      console.error("Failed to fetch topics", err)
+    }
+  }
+
+  const fetchTopRisk = async () => {
+    setLoadingRisk(true)
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/intelligence/top-risk-video')
+      if (response.ok) {
+        setTopRiskPost(await response.json())
+      }
+    } catch (err) {
+      console.error("Failed to fetch top risk post", err)
+    } finally {
+      setLoadingRisk(false)
+    }
+  }
+
+  const loadData = async () => {
+    setLoading(true)
+    await Promise.all([fetchNarratives(), fetchAllTopics(), fetchTopRisk()])
+    setLoading(false)
+  }
+
   useEffect(() => {
-    fetchNarratives()
-    const interval = setInterval(fetchNarratives, 10000)
+    loadData()
+    const interval = setInterval(() => {
+      fetchNarratives()
+      fetchAllTopics()
+    }, 15000)
     return () => clearInterval(interval)
   }, [])
+
+  const handleSelectTopic = async (topicId) => {
+    setSelectedTopic(topicId)
+    setLoadingTopicDetail(true)
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/intelligence/topics/${topicId}`)
+      if (res.ok) {
+        setTopicDetail(await res.json())
+      }
+    } catch (err) {
+      console.error("Failed to fetch topic detail", err)
+    } finally {
+      setLoadingTopicDetail(false)
+    }
+  }
 
   const handleRunIntelligence = async () => {
     setRunning(true)
@@ -37,113 +110,381 @@ export default function IntelligenceDashboard() {
       const response = await fetch('http://127.0.0.1:8000/api/intelligence/run', { method: 'POST' })
       if (response.ok) {
         const data = await response.json()
-        setMessage(data.message)
+        setMessage(data.message || 'Topic discovery and narrative analysis initiated.')
+        setTimeout(() => {
+          loadData()
+        }, 3000)
       } else {
-        setMessage("Failed to trigger analysis.")
+        setMessage("Failed to trigger analysis job.")
       }
     } catch (err) {
-      setMessage("Error connecting to intelligence service.")
+      setMessage("Error connecting to intelligence clustering service.")
     } finally {
       setTimeout(() => setRunning(false), 2000)
     }
   }
 
   const TopicCard = ({ topic, type }) => {
-    const bgColor = type === 'rapid' ? 'bg-orange-900/40 border-orange-500/50' : 
-                    type === 'emerging' ? 'bg-teal-900/40 border-teal-500/50' : 
-                    'bg-slate-800 border-slate-600'
-                    
-    const titleColor = type === 'rapid' ? 'text-orange-400' : 
-                       type === 'emerging' ? 'text-teal-400' : 
-                       'text-slate-300'
+    const isRapid = type === 'rapid'
+    const isEmerging = type === 'emerging'
 
     return (
-      <div className={`p-5 rounded-lg border shadow-lg ${bgColor} transition-transform hover:scale-[1.02] cursor-pointer`}>
-        <div className="flex justify-between items-start mb-3">
-          <h4 className={`text-lg font-bold ${titleColor} truncate mr-2`}>{topic.name}</h4>
-          <span className={`px-2 py-1 rounded text-xs font-bold whitespace-nowrap
-            ${topic.growth >= 100 ? 'bg-green-900/50 text-green-400' : 
-              topic.growth > 0 ? 'bg-emerald-900/30 text-emerald-400' : 
-              'bg-red-900/30 text-red-400'}`}>
-            {topic.growth > 0 ? '+' : ''}{topic.growth}%
-          </span>
-        </div>
-        
-        <div className="mb-4">
-          <span className="text-gray-400 text-sm block mb-1">Top Keywords:</span>
-          <div className="flex flex-wrap gap-1">
-            {topic.keywords && topic.keywords.slice(0, 5).map(kw => (
-              <span key={kw} className="bg-gray-900/80 text-gray-300 text-xs px-2 py-1 rounded">
-                {kw}
-              </span>
-            ))}
+      <div 
+        onClick={() => {
+          handleTabChange('topics')
+          handleSelectTopic(topic.id)
+        }}
+        className={`glass-panel p-5 rounded-2xl cursor-pointer hover:border-white/30 transition-all flex flex-col justify-between group ${
+          isRapid ? 'hover:shadow-lg hover:shadow-orange-500/10' : 
+          isEmerging ? 'hover:shadow-lg hover:shadow-cyan-500/10' : ''
+        }`}
+      >
+        <div>
+          <div className="flex justify-between items-start gap-2 mb-3">
+            <h4 className="text-sm font-semibold text-white group-hover:text-purple-300 transition-colors line-clamp-1">
+              {topic.name}
+            </h4>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 border ${
+              topic.growth >= 100 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 
+              topic.growth > 0 ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400' : 
+              'bg-gray-500/10 border-gray-500/30 text-gray-400'
+            }`}>
+              {topic.growth > 0 ? '+' : ''}{topic.growth}%
+            </span>
+          </div>
+          
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-1.5">
+              {topic.keywords && topic.keywords.slice(0, 4).map(kw => (
+                <span key={kw} className="bg-white/[0.04] border border-white/5 text-gray-300 text-[11px] px-2 py-0.5 rounded-md">
+                  {kw}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
         
-        <div className="flex justify-between items-center text-sm border-t border-gray-700/50 pt-3 mt-auto">
-          <span className="text-gray-400">Volume</span>
-          <span className="font-mono font-bold text-white">{topic.volume.toLocaleString()} posts</span>
+        <div className="flex justify-between items-center text-xs border-t border-white/5 pt-3 text-gray-400">
+          <span>Cluster Volume</span>
+          <span className="font-mono text-white font-medium">{topic.volume?.toLocaleString()} items</span>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-8">
-      <div className="bg-gradient-to-r from-amber-900/60 to-orange-900/60 p-6 rounded-lg border border-amber-500/50 flex flex-col md:flex-row justify-between items-start md:items-center">
+    <div className="space-y-6">
+      {/* Header Banner */}
+      <div className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white">Topic Intelligence</h2>
-          <p className="text-amber-200 mt-1">Unsupervised BERTopic clustering and theme detection.</p>
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              <Layers className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white tracking-tight">Topics & Narrative Intelligence</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Unsupervised BERTopic clustering, narrative velocity tracking, and risk analysis</p>
+            </div>
+          </div>
         </div>
-        <button 
-          onClick={handleRunIntelligence}
-          disabled={running}
-          className={`mt-4 md:mt-0 px-6 py-2 rounded-lg font-semibold text-white transition-colors shadow-lg ${running ? 'bg-amber-700/50 cursor-not-allowed' : 'bg-amber-600 hover:bg-amber-500 shadow-amber-500/20'}`}
-        >
-          {running ? 'Clustering...' : 'Run Topic Discovery'}
-        </button>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Tab Switcher */}
+          <div className="flex items-center p-1 bg-black/40 border border-white/5 rounded-xl overflow-x-auto">
+            <button
+              onClick={() => handleTabChange('narratives')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                activeTab === 'narratives'
+                  ? 'bg-amber-500/20 text-amber-200 border border-amber-500/40 shadow-sm'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <GitBranch className="w-3.5 h-3.5" />
+              Narrative Velocity
+            </button>
+            <button
+              onClick={() => handleTabChange('topics')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                activeTab === 'topics'
+                  ? 'bg-purple-500/20 text-purple-200 border border-purple-500/40 shadow-sm'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              All Topic Clusters
+            </button>
+            <button
+              onClick={() => handleTabChange('risk')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                activeTab === 'risk'
+                  ? 'bg-rose-500/20 text-rose-200 border border-rose-500/40 shadow-sm'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <AlertTriangle className="w-3.5 h-3.5" />
+              Risk Post
+            </button>
+          </div>
+
+          <button 
+            onClick={handleRunIntelligence}
+            disabled={running}
+            className={`px-4 py-2 rounded-xl text-xs font-medium text-white transition-all flex items-center gap-2 ${
+              running ? 'bg-gray-700/50 cursor-not-allowed opacity-60' : 'bg-amber-600 hover:bg-amber-500 shadow-md shadow-amber-600/20 active:scale-95'
+            }`}
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${running ? 'animate-spin' : ''}`} />
+            {running ? 'Clustering...' : 'Run Discovery'}
+          </button>
+        </div>
       </div>
 
       {message && (
-        <div className="bg-amber-900/40 border border-amber-500/50 p-4 rounded-lg text-amber-200">
+        <div className="p-3 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs rounded-xl flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
           {message}
         </div>
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Loading intelligence data...</div>
-      ) : (
-        <div className="space-y-10">
-
-          {/* Emerging Topics Section */}
-          <section>
-            <div className="flex items-center space-x-3 mb-6 border-b border-gray-700 pb-2">
-              <h3 className="text-2xl font-bold text-white">Emerging Topics</h3>
-              <span className="bg-teal-600 text-white text-xs font-bold px-2 py-1 rounded-full">NEW</span>
-            </div>
-            {narratives.emerging.length === 0 ? (
-              <p className="text-gray-500">No emerging topics detected currently.</p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {narratives.emerging.map(topic => <TopicCard key={topic.id} topic={topic} type="emerging" />)}
-              </div>
-            )}
-          </section>
-
-          {/* Major Topics Section */}
-          <section>
-            <div className="flex items-center space-x-3 mb-6 border-b border-gray-700 pb-2">
-              <h3 className="text-2xl font-bold text-white">Existing Major Topics</h3>
-            </div>
-            {narratives.major.length === 0 ? (
-              <p className="text-gray-500">No major topics detected currently.</p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {narratives.major.map(topic => <TopicCard key={topic.id} topic={topic} type="major" />)}
-              </div>
-            )}
-          </section>
+        <div className="glass-panel p-12 rounded-2xl text-center text-gray-500 text-xs">
+          Loading intelligence data...
         </div>
+      ) : (
+        <>
+          {/* TAB 1: NARRATIVE VELOCITY */}
+          {activeTab === 'narratives' && (
+            <div className="space-y-8">
+              {/* Rapid Narratives */}
+              <section>
+                <div className="flex items-center gap-2.5 mb-4">
+                  <span className="p-1 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                    <Zap className="w-3.5 h-3.5" />
+                  </span>
+                  <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Rapid Acceleration Narratives</h3>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400">
+                    High Velocity
+                  </span>
+                </div>
+                {narratives.rapid.length === 0 ? (
+                  <div className="glass-panel p-6 rounded-2xl text-center text-gray-500 text-xs">
+                    No rapid-velocity narratives detected at this cycle.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {narratives.rapid.map(topic => <TopicCard key={topic.id} topic={topic} type="rapid" />)}
+                  </div>
+                )}
+              </section>
+
+              {/* Emerging Topics */}
+              <section>
+                <div className="flex items-center gap-2.5 mb-4">
+                  <span className="p-1 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </span>
+                  <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Emerging Themes</h3>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+                    Novel Clusters
+                  </span>
+                </div>
+                {narratives.emerging.length === 0 ? (
+                  <div className="glass-panel p-6 rounded-2xl text-center text-gray-500 text-xs">
+                    No newly emerging themes detected at this cycle.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {narratives.emerging.map(topic => <TopicCard key={topic.id} topic={topic} type="emerging" />)}
+                  </div>
+                )}
+              </section>
+
+              {/* Major Topics */}
+              <section>
+                <div className="flex items-center gap-2.5 mb-4">
+                  <span className="p-1 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                    <Layers className="w-3.5 h-3.5" />
+                  </span>
+                  <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Established Major Topics</h3>
+                </div>
+                {narratives.major.length === 0 ? (
+                  <div className="glass-panel p-6 rounded-2xl text-center text-gray-500 text-xs">
+                    No established major topics found.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {narratives.major.map(topic => <TopicCard key={topic.id} topic={topic} type="major" />)}
+                  </div>
+                )}
+              </section>
+            </div>
+          )}
+
+          {/* TAB 2: ALL TOPIC CLUSTERS */}
+          {activeTab === 'topics' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Topic List */}
+              <div className="lg:col-span-1 space-y-3">
+                <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 px-1">
+                  Clusters ({allTopics.length})
+                </div>
+                <div className="space-y-2 max-h-[650px] overflow-y-auto pr-1">
+                  {allTopics.map(t => (
+                    <div
+                      key={t.id}
+                      onClick={() => handleSelectTopic(t.id)}
+                      className={`p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${
+                        selectedTopic === t.id
+                          ? 'bg-purple-500/20 border-purple-500/40 text-white shadow-sm'
+                          : 'glass-panel text-gray-300 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-1.5">
+                        <span className="font-semibold text-white">{t.name}</span>
+                        <span className="font-mono text-gray-400 text-[11px]">{t.volume} items</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[11px]">
+                        <span className="capitalize text-gray-400">{t.classification?.replace('_', ' ')}</span>
+                        <span className={`font-medium ${t.growth_rate > 0 ? 'text-emerald-400' : 'text-gray-400'}`}>
+                          {t.growth_rate > 0 ? `+${t.growth_rate}%` : `${t.growth_rate}%`}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Topic Detail View */}
+              <div className="lg:col-span-2">
+                {selectedTopic && topicDetail ? (
+                  <div className="glass-panel p-6 rounded-2xl space-y-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4">
+                      <div>
+                        <div className="text-xs text-purple-400 font-semibold uppercase tracking-wider">Cluster Detail</div>
+                        <h3 className="text-lg font-bold text-white mt-0.5">{topicDetail.name}</h3>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div className="text-[10px] text-gray-400 uppercase">Growth Rate</div>
+                          <div className="text-sm font-bold text-emerald-400 font-mono">
+                            {topicDetail.growth_rate > 0 ? `+${topicDetail.growth_rate}%` : `${topicDetail.growth_rate}%`}
+                          </div>
+                        </div>
+                        <div className="text-right pl-3 border-l border-white/10">
+                          <div className="text-[10px] text-gray-400 uppercase">Total Items</div>
+                          <div className="text-sm font-bold text-white font-mono">{topicDetail.volume}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Dominant Keywords</div>
+                      <div className="flex flex-wrap gap-2">
+                        {topicDetail.keywords?.map(kw => (
+                          <span key={kw} className="px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-xs text-purple-200">
+                            {kw}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Sample Ingested Posts</div>
+                      {loadingTopicDetail ? (
+                        <div className="text-gray-500 text-xs py-4 text-center">Loading sample posts...</div>
+                      ) : topicDetail.posts?.length === 0 ? (
+                        <div className="text-gray-500 text-xs py-4 text-center">No post content available for this cluster.</div>
+                      ) : (
+                        <div className="space-y-3">
+                          {topicDetail.posts?.map(p => (
+                            <div key={p.id} className="p-3.5 bg-black/30 border border-white/5 rounded-xl text-xs space-y-1.5">
+                              <div className="flex justify-between items-center text-[11px] text-gray-400">
+                                <span className="font-mono text-purple-300">@{p.author_username || 'anonymous'}</span>
+                                <span className="uppercase text-[10px] px-1.5 py-0.5 rounded bg-white/5 border border-white/5 text-gray-400">
+                                  {p.platform}
+                                </span>
+                              </div>
+                              <p className="text-gray-200 leading-relaxed">{p.text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="glass-panel p-12 rounded-2xl text-center text-gray-500 text-xs flex flex-col items-center justify-center min-h-[300px]">
+                    <Layers className="w-8 h-8 text-gray-600 mb-2 opacity-50" />
+                    Select a topic cluster from the list on the left to inspect detailed keyword embeddings and sampled posts.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: RISK POST */}
+          {activeTab === 'risk' && (
+            <div className="space-y-6">
+              {loadingRisk ? (
+                <div className="glass-panel p-12 rounded-2xl text-center text-gray-500 text-xs">
+                  Evaluating risk patterns across ingested content...
+                </div>
+              ) : topRiskPost ? (
+                <div className="glass-panel p-6 rounded-2xl border-rose-500/20 space-y-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400">
+                        <AlertTriangle className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-xs text-rose-400 font-semibold uppercase tracking-wider">Top Detected Risk Item</div>
+                        <h3 className="text-base font-bold text-white mt-0.5">Highest Cross-Platform Risk Score</h3>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-300 font-bold">
+                        Score: {topRiskPost.risk_score} / 100
+                      </span>
+                      <span className="text-xs px-3 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300 uppercase font-semibold">
+                        {topRiskPost.platform}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-black/40 border border-white/5 rounded-xl space-y-2">
+                    <div className="flex justify-between items-center text-xs text-gray-400">
+                      <span className="font-mono text-purple-300">Author: {topRiskPost.author}</span>
+                      <span>Engagement: {topRiskPost.views?.toLocaleString()} interactions</span>
+                    </div>
+                    <p className="text-sm text-white font-medium leading-relaxed">
+                      {topRiskPost.text}
+                    </p>
+                    {topRiskPost.url && (
+                      <div className="pt-2">
+                        <a 
+                          href={topRiskPost.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1 transition-colors"
+                        >
+                          View Original Post <ChevronRight className="w-3 h-3" />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-4 bg-rose-500/5 border border-rose-500/20 rounded-xl">
+                    <div className="text-xs font-semibold text-rose-300 mb-1">Signal Explanation</div>
+                    <p className="text-xs text-gray-300">{topRiskPost.explanation}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="glass-panel p-12 rounded-2xl text-center text-gray-500 text-xs">
+                  No high-risk posts identified in current sample window.
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   )

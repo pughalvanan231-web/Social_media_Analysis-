@@ -49,23 +49,23 @@ export default function DemoController({ onComplete }) {
     return (
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/50 rounded-full h-14 w-14 flex items-center justify-center font-black text-xl z-50 border-2 border-blue-400 transition-transform hover:scale-105"
-        title="Demo Controller"
+        className="fixed bottom-5 right-16 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-xl shadow-indigo-950/60 rounded-full h-11 w-11 flex items-center justify-center font-bold text-sm z-40 border border-white/20 transition-all hover:scale-105 active:scale-95 group"
+        title="SIH Demo Intelligence Generator"
       >
-        ★
+        <span className="group-hover:rotate-45 transition-transform">★</span>
       </button>
     )
   }
 
   return (
-    <div className="fixed bottom-6 right-6 w-80 bg-gray-900 border border-gray-700 shadow-2xl rounded-lg overflow-hidden z-50 flex flex-col">
+    <div className="fixed bottom-5 right-16 w-84 bg-[#141724] border border-white/10 shadow-2xl rounded-2xl overflow-hidden z-50 flex flex-col animate-canvas-enter">
       {/* Header */}
-      <div className="bg-gray-950 border-b border-gray-800 p-3 flex justify-between items-center">
-        <span className="font-bold text-gray-200 text-sm tracking-wider uppercase flex items-center gap-2">
-          <span className="text-blue-500">★</span> Demo Mode
+      <div className="bg-[#0e1017] border-b border-white/[0.08] p-3.5 flex justify-between items-center">
+        <span className="font-bold text-zinc-100 text-xs tracking-wider uppercase flex items-center gap-2">
+          <span className="text-purple-400">★</span> SIH Intelligence Generator
         </span>
         {!isProcessing && (
-          <button onClick={() => setIsOpen(false)} className="text-gray-500 hover:text-white">✕</button>
+          <button onClick={() => setIsOpen(false)} className="text-zinc-500 hover:text-white text-xs">✕</button>
         )}
       </div>
 

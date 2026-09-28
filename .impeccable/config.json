@@ -1,0 +1,29 @@
+{
+  "name": "gossip-protocol",
+  "version": "1.0.0",
+  "designSystem": {
+    "framework": "react",
+    "styling": "tailwindcss-v4",
+    "typography": {
+      "sans": "Plus Jakarta Sans",
+      "mono": "JetBrains Mono"
+    },
+    "tokens": {
+      "viewportBackground": "#08090d",
+      "canvasBackground": "#101116",
+      "cardBackground": "#151722",
+      "accent": "#a855f7"
+    },
+    "microTexture": {
+      "type": "fractalNoise",
+      "baseFrequency": 1.45,
+      "octaves": 4,
+      "opacity": 0.055
+    }
+  },
+  "rules": [
+    "no-duplicate-nested-containers",
+    "dynamic-telemetry-bindings-only",
+    "seamless-framed-canvas-corners"
+  ]
+}

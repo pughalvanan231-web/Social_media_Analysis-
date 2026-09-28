@@ -3,22 +3,31 @@ from transformers import pipeline
 from sqlalchemy.orm import Session
 from app.models.social import SocialPost, PostAnalysis
 
-print("Loading local Hugging Face sentiment model...")
-# We use a robust model optimized for social media text that supports POS/NEU/NEG
-sentiment_pipeline = pipeline(
-    "sentiment-analysis", 
-    model="cardiffnlp/twitter-roberta-base-sentiment-latest", 
-    device=0 if torch.cuda.is_available() else -1
-)
+_sentiment_pipeline = None
+_emotion_pipeline = None
 
-print("Loading local Hugging Face emotion model...")
-# Secondary pipeline for nuanced emotions (anger, fear/anxiety, joy, sadness, etc.)
-emotion_pipeline = pipeline(
-    "text-classification",
-    model="j-hartmann/emotion-english-distilroberta-base",
-    device=0 if torch.cuda.is_available() else -1
-)
-print("Models loaded successfully.")
+def get_sentiment_pipeline():
+    global _sentiment_pipeline
+    if _sentiment_pipeline is None:
+        print("Loading local Hugging Face sentiment model...")
+        _sentiment_pipeline = pipeline(
+            "sentiment-analysis", 
+            model="cardiffnlp/twitter-roberta-base-sentiment-latest", 
+            device=0 if torch.cuda.is_available() else -1
+        )
+    return _sentiment_pipeline
+
+def get_emotion_pipeline():
+    global _emotion_pipeline
+    if _emotion_pipeline is None:
+        print("Loading local Hugging Face emotion model...")
+        _emotion_pipeline = pipeline(
+            "text-classification",
+            model="j-hartmann/emotion-english-distilroberta-base",
+            device=0 if torch.cuda.is_available() else -1
+        )
+    return _emotion_pipeline
+
 
 def normalize_label(label: str) -> str:
     """Normalize the raw model output into standard positive/neutral/negative."""
@@ -46,6 +55,9 @@ def analyze_posts_batch(db: Session, batch_size: int = 50):
 
         print(f"Starting sentiment analysis on {len(posts_to_analyze)} posts...")
         
+        sentiment_pipeline = get_sentiment_pipeline()
+        emotion_pipeline = get_emotion_pipeline()
+
         for post in posts_to_analyze:
             if not post.text:
                 continue

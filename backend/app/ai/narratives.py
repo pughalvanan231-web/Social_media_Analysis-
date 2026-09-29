@@ -24,11 +24,11 @@ def compute_narrative_growth(db: Session):
         topic.growth_rate = simulated_growth
         
         # Classification Engine
-        if topic.volume >= 20 and topic.growth_rate >= 150.0:
+        if topic.growth_rate >= 120.0:
             topic.classification = "rapid_narrative"
-        elif topic.volume < 20 and topic.growth_rate >= 50.0:
+        elif topic.growth_rate >= 40.0:
             topic.classification = "emerging"
-        elif topic.volume >= 30 and topic.growth_rate < 150.0:
+        elif topic.volume >= 20 or topic.growth_rate >= 0.0:
             topic.classification = "major"
         else:
             topic.classification = "minor"

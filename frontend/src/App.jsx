@@ -11,6 +11,7 @@ import TrendsDashboard from './pages/TrendsDashboard'
 import NetworkDashboard from './pages/NetworkDashboard'
 import AlertsDashboard from './pages/AlertsDashboard'
 import InvestigateDashboard from './pages/InvestigateDashboard'
+import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import DemoController from './components/DemoController'
 
@@ -44,10 +45,13 @@ function App() {
     <AuthProvider>
       <DemoController onComplete={() => window.location.reload()} />
       <Routes>
+        {/* Public Showcase Landing Page */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/landing" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         
         {/* Core Consolidated Intelligence Routes */}
-        <Route path="/" element={<ProtectedRoute><MainDashboard /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><MainDashboard /></ProtectedRoute>} />
         <Route path="/alerts" element={<ProtectedRoute><AlertsDashboard /></ProtectedRoute>} />
         <Route path="/trends" element={<ProtectedRoute><TrendsDashboard /></ProtectedRoute>} />
         <Route path="/sentiment" element={<ProtectedRoute><SentimentDashboard /></ProtectedRoute>} />

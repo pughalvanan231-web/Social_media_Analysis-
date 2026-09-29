@@ -29,6 +29,8 @@ import {
   Copy,
   GitPullRequest,
   CheckSquare,
+  Sun,
+  Moon,
   X
 } from 'lucide-react'
 
@@ -47,9 +49,26 @@ export default function SidebarLayout({ children }) {
   const [chatOpen, setChatOpen] = useState(false)
   const [quickNote, setQuickNote] = useState(localStorage.getItem('gp_quick_note') || '')
   const [liveAutoRefresh, setLiveAutoRefresh] = useState(true)
+  const [theme, setTheme] = useState(() => localStorage.getItem('gp_theme') || 'dark')
+
+  // Theme Sync Effect
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('light')
+      document.documentElement.classList.remove('dark')
+    } else {
+      document.documentElement.classList.remove('light')
+      document.documentElement.classList.add('dark')
+    }
+    localStorage.setItem('gp_theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark')
+  }
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: Home },
+    { name: 'Dashboard', path: '/dashboard', icon: Home },
     { name: 'Alerts & Threats', path: '/alerts', icon: ShieldAlert },
     { name: 'Trends & Anomalies', path: '/trends', icon: TrendingUp },
     { name: 'Sentiment & Emotion', path: '/sentiment', icon: Smile },
@@ -106,6 +125,11 @@ export default function SidebarLayout({ children }) {
   return (
     <div className="h-screen w-screen flex flex-col cosmic-grain-wrapper relative overflow-hidden select-none font-sans">
       
+      {/* High-Performance Unified Figma Horizon (Zero-Blur Mathematical Gaussian Surface) */}
+      <div className="figma-horizon-layer pointer-events-none absolute inset-0 overflow-hidden z-0" aria-hidden="true">
+        <div className="figma-aurora-surface"></div>
+      </div>
+
       {/* 1. Subtle Authentic Grain Overlay (covers the window) */}
       <div className="grain-overlay pointer-events-none absolute inset-0 z-0"></div>
 
@@ -122,16 +146,18 @@ export default function SidebarLayout({ children }) {
         
         {/* Left: Brand Icon & Breadcrumbs */}
         <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center group pl-0.5" title="Home">
+          <Link to="/dashboard" className="flex items-center group pl-0.5" title="Dashboard">
             <BrandLogo size={24} />
           </Link>
 
           {/* Breadcrumb Path */}
           <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-zinc-400 hover:text-zinc-200 transition-colors">Gossip Protocol</span>
+            <Link to="/" className="text-zinc-400 hover:text-purple-300 transition-colors" title="Platform Landing Page">
+              Gossip Protocol
+            </Link>
             <span className="text-zinc-600">/</span>
             <span className="font-semibold text-zinc-200">
-              {currentNav?.name || 'Home'}
+              {currentNav?.name || 'Dashboard'}
             </span>
           </div>
         </div>
@@ -200,6 +226,19 @@ export default function SidebarLayout({ children }) {
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
             LIVE
           </div>
+
+          {/* Theme Switcher Toggle */}
+          <button 
+            onClick={toggleTheme}
+            className="w-7 h-7 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white transition-all group"
+            title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-3.5 h-3.5 text-amber-300 group-hover:rotate-45 transition-transform" />
+            ) : (
+              <Moon className="w-3.5 h-3.5 text-purple-600 group-hover:-rotate-12 transition-transform" />
+            )}
+          </button>
 
           {/* Dynamic User Profile Avatar */}
           <div className="relative ml-0.5">
@@ -312,7 +351,10 @@ export default function SidebarLayout({ children }) {
         </aside>
 
         {/* 4. THE SEAMLESS MAIN CANVAS (With seamless rounded corners directly bordering the rails) */}
-        <main className="flex-1 h-full overflow-hidden rounded-2xl border border-white/[0.09] bg-[#101116] shadow-2xl relative flex flex-col z-10">
+        <main className="flex-1 h-full overflow-hidden rounded-2xl border border-white/[0.09] bg-[#0c0e18]/45 shadow-2xl relative flex flex-col z-10 transition-colors duration-300">
+          {/* Subtle top sheen line */}
+          <div className="canvas-top-sheen"></div>
+
           {/* Scrollable Canvas Surface: Content sits directly inside without duplicate nested boxes */}
           <div className="flex-1 overflow-y-auto p-5 md:p-7 animate-canvas-enter">
             <div className="max-w-7xl mx-auto">

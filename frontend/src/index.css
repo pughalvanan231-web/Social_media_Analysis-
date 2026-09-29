@@ -10,31 +10,192 @@
   --canvas-border: rgba(255, 255, 255, 0.08);
   --card-bg: #151722;
   --card-border: rgba(255, 255, 255, 0.07);
+  --app-bg: #08090d;
+  --text-main: #f1f5f9;
+  --text-sub: #94a3b8;
+
+  /* Figma 4-Step Ethereal Gradient Horizon Tokens */
+  --figma-p-stop1: #4338ca;
+  --figma-p-stop2: #6d28d9;
+  --figma-p-stop3: #7c3aed;
+  --figma-p-stop4: #3b82f6;
+  --figma-p-opacity: 0.95;
+  --figma-w-stop1: #c084fc;
+  --figma-w-stop2: #ffffff;
+  --figma-w-stop3: #93c5fd;
+  --figma-w-opacity: 0.85;
+}
+
+html.light {
+  --canvas-bg: #ffffff;
+  --canvas-border: rgba(0, 0, 0, 0.08);
+  --card-bg: #ffffff;
+  --card-border: rgba(0, 0, 0, 0.06);
+  --app-bg: #f8fafc;
+  --text-main: #0f172a;
+  --text-sub: #475569;
+
+  /* Figma Gradient Tokens for Light Theme */
+  --figma-p-stop1: #c084fc;
+  --figma-p-stop2: #a855f7;
+  --figma-p-stop3: #818cf8;
+  --figma-p-stop4: #38bdf8;
+  --figma-p-opacity: 0.45;
+  --figma-w-stop1: #ffffff;
+  --figma-w-stop2: #ffffff;
+  --figma-w-stop3: #e0e7ff;
+  --figma-w-opacity: 0.65;
 }
 
 body {
   margin: 0;
   padding: 0;
   font-family: var(--font-sans);
-  background-color: #08090d;
-  color: #f1f5f9;
+  background-color: var(--app-bg);
+  color: var(--text-main);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
   user-select: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Ambient Cosmic Purple/Magenta Glow with Fine Grain */
+/* Figma 4-Step Ethereal Horizon Background (Step 1: Canvas Base) */
 .cosmic-grain-wrapper {
-  background: 
-    radial-gradient(circle 750px at 100% 0%, rgba(168, 85, 247, 0.45) 0%, rgba(126, 34, 206, 0.3) 25%, rgba(112, 26, 117, 0.16) 48%, rgba(8, 9, 13, 0) 75%),
-    radial-gradient(circle 500px at 100% 30%, rgba(147, 51, 234, 0.22) 0%, rgba(91, 33, 182, 0.1) 45%, transparent 70%),
-    #08090d;
+  position: relative;
+  background-color: var(--app-bg);
+  background-image: radial-gradient(ellipse 120% 70% at 50% 100%, #1e1138 0%, #0d081c 45%, #08090d 100%);
+  transition: background-color 0.4s ease;
+  contain: paint;
 }
 
-/* Ultra-fine Velvet Film Grain Noise */
+html.light .cosmic-grain-wrapper {
+  background-color: #f8fafc;
+  background-image: radial-gradient(ellipse 120% 70% at 50% 100%, #eedeff 0%, #f1f5f9 60%, #f8fafc 100%);
+}
+
+/* Figma Ethereal Horizon Container - Zero CPU overhead */
+.figma-horizon-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+  contain: strict;
+  transform: translateZ(0);
+}
+
+/* Unified Silky Gaussian Horizon Surface (Pre-computed Mathematical Easing, 0px Blur, Zero GPU Overhead) */
+.figma-aurora-surface {
+  position: absolute;
+  bottom: -4%;
+  left: -15%;
+  width: 130%;
+  height: 90%;
+  background: 
+    /* Luminous White & Lavender Core Arc */
+    radial-gradient(
+      ellipse 100% 36% at 50% 100%,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.82) 8%,
+      rgba(243, 232, 255, 0.62) 20%,
+      rgba(216, 180, 254, 0.38) 36%,
+      rgba(168, 85, 247, 0.18) 54%,
+      rgba(129, 140, 248, 0.05) 72%,
+      transparent 100%
+    ),
+    /* Royal Purple & Indigo Atmospheric Horizon */
+    radial-gradient(
+      ellipse 130% 65% at 50% 100%,
+      rgba(124, 58, 237, 0.85) 0%,
+      rgba(110, 48, 225, 0.72) 12%,
+      rgba(99, 102, 241, 0.56) 26%,
+      rgba(79, 70, 229, 0.38) 42%,
+      rgba(67, 56, 202, 0.22) 58%,
+      rgba(46, 16, 101, 0.1) 75%,
+      rgba(13, 8, 28, 0.03) 88%,
+      transparent 100%
+    );
+  animation: figmaAuroraBreathe 18s ease-in-out infinite alternate;
+  transform-origin: 50% 90%;
+  will-change: transform;
+  contain: strict;
+  pointer-events: none;
+}
+
+/* Light Theme overrides */
+html.light .figma-aurora-surface {
+  background: 
+    radial-gradient(
+      ellipse 100% 36% at 50% 100%,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.8) 12%,
+      rgba(245, 243, 255, 0.5) 28%,
+      rgba(224, 231, 255, 0.2) 55%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 130% 65% at 50% 100%,
+      rgba(192, 132, 252, 0.55) 0%,
+      rgba(168, 85, 247, 0.4) 20%,
+      rgba(129, 140, 248, 0.25) 45%,
+      rgba(147, 197, 253, 0.1) 70%,
+      transparent 100%
+    );
+}
+
+/* Pure GPU Transform Matrix - Zero Layout, Zero Reflow, Zero Convolution */
+@keyframes figmaAuroraBreathe {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate3d(0, -10px, 0) scale(1.03);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 6px, 0) scale(0.98);
+    opacity: 0.86;
+  }
+}
+
+/* Canvas Light Theme background */
+html.light main {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Canvas Top Sheen - Static High-End Highlight */
+.canvas-top-sheen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(192, 132, 252, 0.6) 50%, transparent 100%);
+  pointer-events: none;
+  z-index: 20;
+}
+
+html.light .canvas-top-sheen {
+  background: linear-gradient(90deg, transparent 0%, rgba(168, 85, 247, 0.5) 50%, transparent 100%);
+}
+
+/* Ultra-fine Velvet Film Grain Noise - Static 32x32 PNG Texture (0% CPU / 0% GPU Shader) */
 .grain-overlay {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.45' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.055'/%3E%3C/svg%3E");
+  background-image: url("data:image/png;base64,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");
+  background-repeat: repeat;
+  pointer-events: none;
+  contain: strict;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  opacity: 0.18;
+  transition: opacity 0.3s ease;
+}
+
+html.light .grain-overlay {
+  opacity: 0.06;
+  mix-blend-mode: multiply;
 }
 
 /* Custom Scrollbar for Seamless Canvas */
@@ -48,12 +209,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #232736;
+  background: rgba(148, 163, 184, 0.2);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3b4259;
+  background: rgba(148, 163, 184, 0.4);
 }
 
 /* Canvas & Card Keyframes */
@@ -74,12 +235,13 @@ body {
 
 /* Seamless Canvas Surface */
 .seamless-canvas {
-  background-color: #101116;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--canvas-bg);
+  border: 1px solid var(--canvas-border);
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Liquid Frosted Glass Navigation Pill */
+/* Liquid Frosted Glass Navigation Pill (Dark Mode) */
 .glass-nav-active {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(168, 85, 247, 0.14) 100%);
   backdrop-filter: blur(16px);
@@ -92,6 +254,7 @@ body {
     inset 0 -1px 1px 0 rgba(0, 0, 0, 0.2),
     0 4px 16px -2px rgba(0, 0, 0, 0.5),
     0 0 14px -2px rgba(192, 132, 252, 0.35);
+  color: #ffffff;
 }
 
 .glass-pill-indicator {
@@ -99,6 +262,20 @@ body {
   box-shadow: 
     0 0 8px 1px rgba(192, 132, 252, 0.8),
     inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Glass Panels */
+.glass-panel {
+  background-color: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3);
+  transition: all 0.25s ease;
+}
+
+.glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .framed-card {
@@ -114,16 +291,132 @@ body {
   box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.5);
 }
 
-/* Quick Light Theme */
-html.light-theme {
-  filter: invert(1) hue-rotate(180deg);
+/* ═══════════════════════════════════════════════════════
+   LIGHT THEME OVERRIDES (Clean, Modern, Slate/Lilac Tone)
+   ═══════════════════════════════════════════════════════ */
+html.light .cosmic-grain-wrapper {
+  background: 
+    radial-gradient(circle 800px at 100% 0%, rgba(216, 180, 254, 0.35) 0%, rgba(243, 232, 255, 0.6) 35%, rgba(248, 250, 252, 0.9) 65%),
+    radial-gradient(circle 600px at 0% 100%, rgba(199, 210, 254, 0.25) 0%, rgba(241, 245, 249, 0.6) 40%, transparent 70%),
+    #f8fafc;
 }
 
-html.light-theme img, 
-html.light-theme video {
-  filter: invert(1) hue-rotate(180deg);
+html.light main {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 10px 35px -10px rgba(0, 0, 0, 0.06), 0 1px 3px 0 rgba(0, 0, 0, 0.02) !important;
 }
 
-html.light-theme .leaflet-container img {
-  filter: none;
+html.light .glass-panel {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 2px 12px -2px rgba(0, 0, 0, 0.04) !important;
+  color: #0f172a !important;
+}
+
+html.light .glass-panel:hover {
+  border-color: rgba(168, 85, 247, 0.35) !important;
+}
+
+html.light .glass-nav-active {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.12) 0%, rgba(147, 51, 234, 0.05) 100%) !important;
+  border: 1px solid rgba(147, 51, 234, 0.25) !important;
+  box-shadow: 0 2px 8px -2px rgba(147, 51, 234, 0.15) !important;
+  color: #6b21a8 !important;
+}
+
+html.light .glass-pill-indicator {
+  background: linear-gradient(180deg, #c084fc 0%, #9333ea 100%) !important;
+  box-shadow: 0 0 8px 1px rgba(147, 51, 234, 0.6) !important;
+}
+
+html.light .framed-card {
+  background-color: #ffffff !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04) !important;
+}
+
+html.light .framed-card:hover {
+  background-color: #f8fafc !important;
+  border-color: rgba(147, 51, 234, 0.3) !important;
+  box-shadow: 0 6px 18px -4px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Light text color mappings */
+html.light h1, 
+html.light h2, 
+html.light h3, 
+html.light h4, 
+html.light .text-white,
+html.light .text-zinc-100 {
+  color: #0f172a !important;
+}
+
+html.light .text-zinc-200, 
+html.light .text-gray-200 {
+  color: #1e293b !important;
+}
+
+html.light .text-zinc-300, 
+html.light .text-gray-300 {
+  color: #334155 !important;
+}
+
+html.light .text-zinc-400, 
+html.light .text-gray-400 {
+  color: #64748b !important;
+}
+
+html.light .text-zinc-500, 
+html.light .text-gray-500 {
+  color: #94a3b8 !important;
+}
+
+/* Light inputs & controls */
+html.light input, 
+html.light textarea, 
+html.light select {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.light input::placeholder, 
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light input:focus, 
+html.light textarea:focus {
+  border-color: #9333ea !important;
+  background-color: #ffffff !important;
+}
+
+/* Light drawers & modals */
+html.light .fixed.bg-\[\#141724\], 
+html.light .bg-\[\#141724\],
+html.light .bg-\[\#151722\] {
+  background-color: #ffffff !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12) !important;
+}
+
+html.light .bg-black\/40, 
+html.light .bg-black\/30 {
+  background-color: rgba(241, 245, 249, 0.8) !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+}
+
+html.light .bg-white\/\[0\.04\], 
+html.light .bg-white\/\[0\.03\], 
+html.light .bg-white\/\[0\.02\] {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light .border-white\/10, 
+html.light .border-white\/\[0\.08\], 
+html.light .border-white\/\[0\.07\], 
+html.light .border-white\/5 {
+  border-color: rgba(0, 0, 0, 0.07) !important;
 }

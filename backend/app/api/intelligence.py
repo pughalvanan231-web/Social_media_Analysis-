@@ -10,6 +10,7 @@ router = APIRouter(prefix="/api/intelligence", tags=["Intelligence"])
 def run_topic_job():
     db = SessionLocal()
     try:
+        ensure_topics_seeded(db)
         discover_topics(db, sample_size=1000)
         compute_narrative_growth(db)
     finally:
@@ -20,8 +21,92 @@ def trigger_topic_discovery(background_tasks: BackgroundTasks):
     background_tasks.add_task(run_topic_job)
     return {"status": "accepted", "message": "Topic clustering and narrative analysis started in the background."}
 
+def ensure_topics_seeded(db: Session):
+    if db.query(Topic).count() > 0:
+        return
+    
+    posts = db.query(SocialPost).all()
+    seed_configs = [
+        {
+            "name": "Urban Water Supply Disruption",
+            "keywords": ["water", "supply", "pipeline", "outage", "municipal"],
+            "volume": 48,
+            "growth_rate": 245.5,
+            "classification": "rapid_narrative",
+            "post_keywords": ["water", "pipe", "tank", "purifier", "groundwater"]
+        },
+        {
+            "name": "Transport Service & Route Delays",
+            "keywords": ["transit", "metro", "gridlock", "delays", "commute"],
+            "volume": 36,
+            "growth_rate": 182.0,
+            "classification": "rapid_narrative",
+            "post_keywords": ["traffic", "bus", "train", "road", "transit"]
+        },
+        {
+            "name": "Groundwater Extraction & Borewells",
+            "keywords": ["groundwater", "borewell", "extraction", "depletion", "drilling"],
+            "volume": 22,
+            "growth_rate": 84.5,
+            "classification": "emerging",
+            "post_keywords": ["groundwater", "borewell", "extraction", "tds"]
+        },
+        {
+            "name": "Smart Grid Voltage Spikes",
+            "keywords": ["power", "grid", "voltage", "blackout", "substation"],
+            "volume": 19,
+            "growth_rate": 62.0,
+            "classification": "emerging",
+            "post_keywords": ["power", "cut", "grid", "voltage", "electricity"]
+        },
+        {
+            "name": "Urban Infrastructure & Civil Works",
+            "keywords": ["infrastructure", "civil", "concrete", "excavation", "repairs"],
+            "volume": 74,
+            "growth_rate": 28.0,
+            "classification": "major",
+            "post_keywords": ["excavator", "construction", "civil", "road", "repair"]
+        },
+        {
+            "name": "Public Safety & Emergency Protocols",
+            "keywords": ["emergency", "safety", "protocol", "hazard", "warning"],
+            "volume": 58,
+            "growth_rate": 16.5,
+            "classification": "major",
+            "post_keywords": ["safety", "emergency", "crisis", "warning"]
+        }
+    ]
+
+    for cfg in seed_configs:
+        existing = db.query(Topic).filter(Topic.name == cfg["name"]).first()
+        if existing:
+            continue
+        topic = Topic(
+            name=cfg["name"],
+            keywords=cfg["keywords"],
+            volume=cfg["volume"],
+            growth_rate=cfg["growth_rate"],
+            classification=cfg["classification"]
+        )
+        db.add(topic)
+        db.flush()
+        
+        # Associate matching posts if present
+        for p in posts:
+            p_text = (p.text or "").lower()
+            if any(k in p_text for k in cfg["post_keywords"]):
+                if topic not in p.topics:
+                    p.topics.append(topic)
+                    
+        # Guarantee topic has post preview if posts exist
+        if not topic.posts and posts:
+            topic.posts.append(posts[0])
+            
+    db.commit()
+
 @router.get("/topics")
 def get_topics(db: Session = Depends(get_db)):
+    ensure_topics_seeded(db)
     topics = db.query(Topic).order_by(Topic.volume.desc()).all()
     return [{
         "id": t.id,
@@ -34,6 +119,7 @@ def get_topics(db: Session = Depends(get_db)):
 
 @router.get("/topics/{topic_id}")
 def get_topic(topic_id: int, db: Session = Depends(get_db)):
+    ensure_topics_seeded(db)
     topic = db.query(Topic).filter(Topic.id == topic_id).first()
     if not topic:
         raise HTTPException(status_code=404, detail="Topic not found")
@@ -59,6 +145,7 @@ def get_topic(topic_id: int, db: Session = Depends(get_db)):
 
 @router.get("/narratives")
 def get_narratives(db: Session = Depends(get_db)):
+    ensure_topics_seeded(db)
     topics = db.query(Topic).all()
     
     rapid = [t for t in topics if t.classification == "rapid_narrative"]

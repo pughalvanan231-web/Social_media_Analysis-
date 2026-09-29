@@ -32,6 +32,7 @@ def discover_topics(db: Session, sample_size: int = 1000):
             topic_model = BERTopic(language="english", calculate_probabilities=False)
             topics, _ = topic_model.fit_transform(texts)
             
+            saved_any = False
             # Map BERTopic outputs
             topic_info = topic_model.get_topic_info()
             for idx, row in topic_info.iterrows():
@@ -45,8 +46,11 @@ def discover_topics(db: Session, sample_size: int = 1000):
                 
                 # Assign to DB
                 _save_topic(db, name, keywords, topic_id, topics, posts)
+                saved_any = True
                 
-            return
+            if saved_any:
+                return
+            print("BERTopic generated only outliers. Falling back to scikit-learn KMeans.")
         except Exception as e:
             print(f"BERTopic failed: {e}. Falling back to scikit-learn.")
     
@@ -55,8 +59,7 @@ def discover_topics(db: Session, sample_size: int = 1000):
     vectorizer = TfidfVectorizer(stop_words='english', max_features=1000)
     X = vectorizer.fit_transform(texts)
     
-    n_clusters = min(10, len(texts) // 10)
-    if n_clusters < 2: n_clusters = 2
+    n_clusters = min(4, max(2, len(texts) // 3))
     
     kmeans = MiniBatchKMeans(n_clusters=n_clusters, random_state=42, n_init="auto")
     labels = kmeans.fit_predict(X)

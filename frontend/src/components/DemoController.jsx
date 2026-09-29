@@ -22,27 +22,40 @@ export default function DemoController({ onComplete }) {
     setIsProcessing(true)
     setCurrentStep(0)
 
-    // Trigger backend pipeline (no await yet to let UI play)
-    const backendPromise = fetch(`http://127.0.0.1:8000/api/demo/run`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}` // In case auth is needed
+    try {
+      // Step animation sequence
+      const stepPromise = (async () => {
+        for (let i = 0; i < PROCESSING_STEPS.length; i++) {
+          setCurrentStep(i)
+          await new Promise(r => setTimeout(r, 350))
+        }
+      })()
+
+      // Trigger backend pipeline with auth token
+      const token = localStorage.getItem('token')
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
       }
-    }).catch(e => console.error("Demo trigger failed", e))
 
-    // Play visual sequence
-    for (let i = 0; i < PROCESSING_STEPS.length; i++) {
-      setCurrentStep(i)
-      // Wait between 400ms and 800ms per step
-      await new Promise(r => setTimeout(r, 400 + Math.random() * 400))
+      const res = await fetch(`http://127.0.0.1:8000/api/demo/run`, {
+        method: 'POST',
+        headers
+      })
+
+      // Ensure both step visual and backend execution finish
+      await stepPromise
+
+      if (!res.ok) {
+        console.error("Demo trigger returned non-200 status", res.status)
+      }
+    } catch (e) {
+      console.error("Demo trigger failed", e)
+    } finally {
+      setIsProcessing(false)
+      setIsOpen(false)
+      if (onComplete) onComplete()
     }
-
-    // Wait for backend to actually finish just in case
-    await backendPromise
-
-    setIsProcessing(false)
-    setIsOpen(false)
-    if (onComplete) onComplete()
   }
 
   if (!isOpen && !isProcessing) {

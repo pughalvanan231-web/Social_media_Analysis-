@@ -18,7 +18,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await login(username, password)
-      navigate('/')
+      navigate('/dashboard')
     } catch (err) {
       setError(err.message || 'Authorization failed')
     } finally {
